@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>民族交融 - 滇韵古建</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/echarts.min.js"></script>
+    <style>
+        /* 民族选择器 */
+        .ethnic-selector-section {
+            margin-bottom: 40px;
+        }
+        
+        .ethnic-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .ethnic-selector-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 12px;
+            border-radius: 10px;
+            min-width: 80px;
+        }
+
+        .ethnic-selector-item:hover {
+            background: rgba(200, 164, 92, 0.1);
+        }
+
+        .ethnic-selector-item.active {
+            background: rgba(200, 164, 92, 0.15);
+        }
+
+        .ethnic-selector-icon {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            border: 3px solid var(--border-dim);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            background: rgba(200, 164, 92, 0.1);
+        }
+
+        .ethnic-selector-item:hover .ethnic-selector-icon,
+        .ethnic-selector-item.active .ethnic-selector-icon {
+            border-color: var(--gold);
+            box-shadow: 0 0 15px rgba(200, 164, 92, 0.4);
+        }
+
+        .ethnic-selector-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .ethnic-selector-name {
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+
+        .ethnic-selector-item:hover .ethnic-selector-name,
+        .ethnic-selector-item.active .ethnic-selector-name {
+            color: var(--gold);
+        }
+
+        .ethnic-selector-count {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        /* 民族详情卡片容器 */
+        .ethnic-detail-container {
+            position: relative;
+            min-height: 280px;
+            overflow: hidden;
+        }
+
+        /* 民族详情卡片 */
+        .ethnic-detail-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 8px;
+            overflow: hidden;
+            position: absolute;
+            width: 100%;
+            opacity: 0;
+            transform: translateX(50px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+
+        .ethnic-detail-card.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+            position: relative;
+        }
+
+        .ethnic-detail-card.exit-left {
+            opacity: 0;
+            transform: translateX(-50px);
+        }
+
+        .ethnic-detail-card.exit-right {
+            opacity: 0;
+            transform: translateX(50px);
+        }
+
+        .ethnic-detail-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 25px;
+            background: rgba(200, 164, 92, 0.05);
+            border-bottom: 1px solid var(--border-dim);
+        }
+
+        .ethnic-detail-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid var(--gold);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .ethnic-detail-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .ethnic-detail-info {
+            flex: 1;
+        }
+
+        .ethnic-detail-name {
+            font-size: 22px;
+            color: var(--gold);
+            letter-spacing: 3px;
+            margin-bottom: 5px;
+        }
+
+        .ethnic-detail-count {
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        .ethnic-detail-count strong {
+            color: var(--gold);
+            font-size: 18px;
+        }
+
+        .ethnic-detail-body {
+            padding: 25px;
+        }
+
+        .ethnic-detail-desc {
+            font-size: 14px;
+            color: var(--text-dim);
+            line-height: 1.9;
+            margin-bottom: 20px;
+        }
+
+        .ethnic-detail-buildings {
+            padding-top: 20px;
+            border-top: 1px solid var(--border-dim);
+        }
+
+        .ethnic-detail-buildings-title {
+            font-size: 12px;
+            color: var(--gold);
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+
+        .ethnic-detail-buildings-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .ethnic-building-tag {
+            display: inline-block;
+            padding: 6px 12px;
+            font-size: 12px;
+            color: var(--text-light);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            border: 1px solid var(--border-dim);
+            transition: all 0.3s;
+        }
+
+        .ethnic-building-tag:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .charts-section { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 50px; }
+        .chart-card { background: var(--bg-card); border: 1px solid var(--border-dim); border-radius: 8px; padding: 25px; }
+        .chart-title { font-size: 16px; color: var(--text-light); letter-spacing: 3px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-dim); }
+        .fusion-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
+        .fusion-card { background: var(--bg-card); border: 1px solid var(--border-dim); border-radius: 8px; padding: 25px; transition: all 0.3s; }
+        .fusion-card:hover { border-color: var(--gold); transform: translateY(-5px); }
+        .fusion-title { font-size: 16px; color: var(--gold); letter-spacing: 2px; margin-bottom: 15px; }
+        .fusion-desc { font-size: 13px; color: var(--text-dim); line-height: 1.8; margin-bottom: 15px; }
+        .fusion-buildings { padding-top: 15px; border-top: 1px solid var(--border-dim); }
+        .fusion-building { font-size: 12px; color: var(--text-light); margin-bottom: 5px; }
+        
+        @media (max-width: 1200px) { .charts-section { grid-template-columns: 1fr; } }
+        @media (max-width: 1000px) { .fusion-cards { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) { .fusion-cards { grid-template-columns: 1fr; } }
+
+        /* 展厅导航按钮 */
+        .hall-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 40px 0;
+            border-top: 1px solid var(--border-dim);
+            margin-top: 40px;
+        }
+
+        .hall-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 30px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 14px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .hall-nav-btn:hover {
+            border-color: var(--gold);
+            background: rgba(200, 164, 92, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .hall-nav-btn.primary {
+            background: linear-gradient(135deg, var(--gold), var(--vermillion));
+            border-color: var(--gold);
+            color: #fff;
+        }
+
+        .hall-nav-btn.primary:hover {
+            box-shadow: 0 8px 25px rgba(200, 164, 92, 0.3);
+        }
+
+        .hall-nav-arrow {
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-logo" onclick="navigateTo('home.html')">
+            <div class="nav-logo-icon"><img src="assets/icons/icon.png" alt="滇"></div>
+            <span class="nav-logo-text">滇韵古建</span>
+        </div>
+        <div class="nav-links">
+            <a href="javascript:void(0)" class="nav-link" onclick="navigateTo('home.html')">首页</a>
+            <a href="javascript:void(0)" class="nav-link" onclick="navigateTo('hall-timeline.html')">时光长廊</a>
+            <a href="javascript:void(0)" class="nav-link" onclick="navigateTo('hall-map.html')">地理长卷</a>
+            <div class="nav-dropdown">
+                <span class="nav-link">更多展厅 ▾</span>
+                <div class="nav-dropdown-menu">
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-types.html')">建筑万象</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-ethnic.html')">民族交融</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-tech.html')">匠心传承</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-protection.html')">守护重生</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-insights.html')">回望·尾声</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-gallery.html')">建筑图鉴</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">展厅四</div>
+                <h1 class="section-title">民 族 交 融</h1>
+                <p class="section-subtitle" id="ethnicSubtitle">多民族共建，建筑文化融合的生动见证</p>
+            </div>
+
+            <!-- 民族选择器与详情 -->
+            <div class="ethnic-selector-section">
+                <div class="section-header" style="padding: 20px 0;">
+                    <div class="section-badge">民族概览</div>
+                    <h2 class="section-title" style="font-size: 24px;">各民族建筑特色</h2>
+                </div>
+                <div class="ethnic-selector" id="ethnicSelector"></div>
+                <div class="ethnic-detail-container" id="ethnicDetailContainer"></div>
+            </div>
+
+            <div class="chart-card" style="margin-bottom: 30px;">
+                <div class="chart-title">民族建筑历史演变</div>
+                <div id="ethnicTimelineChart" style="height: 650px;"></div>
+            </div>
+
+            <div class="charts-section">
+                <div class="chart-card">
+                    <div class="chart-title">民族参与建筑分布</div>
+                    <div id="ethnicPieChart" style="height: 400px;"></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">民族关系网络</div>
+                    <div id="ethnicNetworkChart" style="height: 400px;"></div>
+                </div>
+            </div>
+
+            <div class="chart-card" style="margin-top: 30px;">
+                <div class="chart-title">民族融合类型分布</div>
+                <div id="sunburstChart" style="height: 500px;"></div>
+            </div>
+
+            <div class="section-header" style="padding: 50px 0 20px;">
+                <div class="section-badge">融合类型</div>
+                <h2 class="section-title" style="font-size: 24px;">建筑中的民族文化交融</h2>
+            </div>
+
+            <div class="fusion-cards" id="fusionCards"></div>
+
+            <!-- 展厅导航 -->
+            <div class="hall-nav">
+                <a href="javascript:void(0)" class="hall-nav-btn" onclick="navigateTo('hall-types.html')">
+                    <span class="hall-nav-arrow">←</span>
+                    <span>上一展厅：建筑万象</span>
+                </a>
+                <a href="javascript:void(0)" class="hall-nav-btn primary" onclick="navigateTo('hall-tech.html')">
+                    <span>进入下一展厅：匠心传承</span>
+                    <span class="hall-nav-arrow">→</span>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/data.js"></script>
+    <script>
+        // iframe内导航函数 - 通过postMessage保持音乐播放
+        function navigateTo(url) {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'navigate', url: url }, '*');
+            } else {
+                window.location.href = url;
+            }
+        }
+
+        const buildings = BUILDINGS || [];
+        const ethnicInfo = {
+            '汉族': { icon: 'assets/images/ethnic/汉族.png', color: '#c8a45c', desc: '汉族是云南古建筑的主要建造者和使用者，带来了中原建筑技术与文化。' },
+            '白族': { icon: 'assets/images/ethnic/白族.png', color: '#5d7a6e', desc: '白族建筑以"三坊一照壁"、"四合五天井"为典型布局，木雕、彩绘装饰精美。' },
+            '彝族': { icon: 'assets/images/ethnic/彝族.png', color: '#a43330', desc: '彝族建筑适应山地环境，形成独特的"土掌房"和"一颗印"布局。' },
+            '傣族': { icon: 'assets/images/ethnic/傣族.png', color: '#6b8e8e', desc: '傣族建筑以干栏式竹楼为代表，适应热带气候。' },
+            '壮族': { icon: 'assets/images/ethnic/壮族.png', color: '#7a9a5a', desc: '壮族建筑以干栏式木楼为主，适应湿热气候。' },
+            '纳西族': { icon: 'assets/images/ethnic/纳西族.png', color: '#8b7355', desc: '纳西族建筑以"三坊一照壁"为典型，融合汉、藏、白族建筑元素。' },
+            '藏族': { icon: 'assets/images/ethnic/藏族.png', color: '#7a6b8e', desc: '藏族建筑以碉楼和藏式寺庙为代表，适应高寒气候。' },
+            '回族': { icon: 'assets/images/ethnic/回族.png', color: '#9c7a5c', desc: '回族建筑融合了伊斯兰文化与汉族传统。' },
+            '哈尼族': { icon: 'assets/images/ethnic/哈尼族.png', color: '#5a8a6a', desc: '哈尼族建筑以蘑菇房为代表，适应山地农耕生活。' },
+            '傈僳族': { icon: 'assets/images/ethnic/傈僳族.png', color: '#6a7a5a', desc: '傈僳族建筑以干栏式木楼为主，适应高山环境。' },
+            '苗族': { icon: 'assets/images/ethnic/苗族.png', color: '#a05a7a', desc: '苗族建筑以吊脚楼为代表，适应山地环境。' },
+            '佤族': { icon: 'assets/images/ethnic/佤族.png', color: '#5a5a5a', desc: '佤族建筑以干栏式竹木结构为主，保留了原始古朴的风格。' },
+            '阿昌族': { icon: 'assets/images/ethnic/阿昌族.png', color: '#7a8a6a', desc: '阿昌族建筑融合了汉族和傣族风格。' },
+            '独龙族': { icon: 'assets/images/ethnic/独龙族.png', color: '#5a6a7a', desc: '独龙族建筑保留了原始的建筑形式。' },
+            '怒族': { icon: 'assets/images/ethnic/怒族.png', color: '#6a5a4a', desc: '怒族建筑以干栏式木屋为主。' }
+        };
+        const excludedEthnics = ['西方文化', '外国', '欧美', '欧洲'];
+        const categoryColors = { '单民族建筑': '#5d7a6e', '双民族融合建筑': '#c8a45c', '多民族融合建筑': '#a43330' };
+
+        function calculateEthnicStats() {
+            const ethnicCounts = {}, ethnicBuildings = {};
+            buildings.forEach(b => {
+                const groups = (b.ethnic_groups || []).filter(g => !excludedEthnics.includes(g));
+                groups.forEach(ethnic => {
+                    ethnicCounts[ethnic] = (ethnicCounts[ethnic] || 0) + 1;
+                    if (!ethnicBuildings[ethnic]) ethnicBuildings[ethnic] = [];
+                    ethnicBuildings[ethnic].push(b.name);
+                });
+            });
+            return { ethnicCounts, ethnicBuildings };
+        }
+
+        const { ethnicCounts, ethnicBuildings } = calculateEthnicStats();
+        document.getElementById('ethnicSubtitle').textContent = `${Object.keys(ethnicCounts).length}个民族，建筑文化融合的生动见证`;
+
+        // 当前选中的民族
+        let currentEthnic = null;
+        let previousEthnicIndex = 0;
+
+        // 渲染民族选择器和详情卡片
+        function renderEthnicSelector() {
+            const selectorContainer = document.getElementById('ethnicSelector');
+            const detailContainer = document.getElementById('ethnicDetailContainer');
+            const sortedEthnics = Object.entries(ethnicCounts).sort((a, b) => b[1] - a[1]);
+            const ethnicNames = sortedEthnics.map(e => e[0]);
+            
+            // 默认选中第一个民族
+            if (!currentEthnic) {
+                currentEthnic = ethnicNames[0];
+                previousEthnicIndex = 0;
+            }
+            
+            // 渲染选择器
+            selectorContainer.innerHTML = sortedEthnics.map(([name, count], index) => {
+                const iconPath = ethnicInfo[name]?.icon || '';
+                return `<div class="ethnic-selector-item ${name === currentEthnic ? 'active' : ''}" 
+                             data-ethnic="${name}" data-index="${index}">
+                    <div class="ethnic-selector-icon">${iconPath ? `<img src="${iconPath}" alt="${name}" onerror="this.style.display='none'">` : ''}</div>
+                    <div class="ethnic-selector-name">${name}</div>
+                    <div class="ethnic-selector-count">${count}座</div>
+                </div>`;
+            }).join('');
+            
+            // 渲染详情卡片
+            detailContainer.innerHTML = sortedEthnics.map(([name, count], index) => {
+                const iconPath = ethnicInfo[name]?.icon || '';
+                const buildings = (ethnicBuildings[name] || []).slice(0, 8);
+                return `<div class="ethnic-detail-card ${name === currentEthnic ? 'active' : ''}" 
+                             data-ethnic="${name}" data-index="${index}">
+                    <div class="ethnic-detail-header">
+                        <div class="ethnic-detail-icon">${iconPath ? `<img src="${iconPath}" alt="${name}" onerror="this.style.display='none'">` : ''}</div>
+                        <div class="ethnic-detail-info">
+                            <div class="ethnic-detail-name">${name}</div>
+                            <div class="ethnic-detail-count">参与 <strong>${count}</strong> 座建筑</div>
+                        </div>
+                    </div>
+                    <div class="ethnic-detail-body">
+                        <div class="ethnic-detail-desc">${ethnicInfo[name]?.desc || ''}</div>
+                        <div class="ethnic-detail-buildings">
+                            <div class="ethnic-detail-buildings-title">代表建筑</div>
+                            <div class="ethnic-detail-buildings-list">
+                                ${buildings.map(b => `<span class="ethnic-building-tag">${b}</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+            
+            // 绑定选择器点击事件
+            selectorContainer.querySelectorAll('.ethnic-selector-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const newEthnic = this.dataset.ethnic;
+                    const newIndex = parseInt(this.dataset.index);
+                    
+                    if (newEthnic === currentEthnic) return;
+                    
+                    // 更新选择器状态
+                    selectorContainer.querySelectorAll('.ethnic-selector-item').forEach(s => s.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 切换卡片动画
+                    switchEthnicCard(currentEthnic, newEthnic, previousEthnicIndex, newIndex);
+                    
+                    currentEthnic = newEthnic;
+                    previousEthnicIndex = newIndex;
+                });
+            });
+        }
+        
+        // 切换民族卡片动画
+        function switchEthnicCard(oldEthnic, newEthnic, oldIndex, newIndex) {
+            const container = document.getElementById('ethnicDetailContainer');
+            const oldCard = container.querySelector(`.ethnic-detail-card[data-ethnic="${oldEthnic}"]`);
+            const newCard = container.querySelector(`.ethnic-detail-card[data-ethnic="${newEthnic}"]`);
+            
+            if (!oldCard || !newCard) return;
+            
+            // 判断滑动方向
+            const direction = newIndex > oldIndex ? 'left' : 'right';
+            
+            // 旧卡片滑出
+            oldCard.classList.remove('active');
+            oldCard.classList.add(direction === 'left' ? 'exit-left' : 'exit-right');
+            
+            // 新卡片滑入
+            newCard.classList.remove('exit-left', 'exit-right');
+            newCard.classList.add('active');
+            
+            // 清理动画类
+            setTimeout(() => {
+                oldCard.classList.remove('exit-left', 'exit-right');
+            }, 500);
+        }
+
+        function renderFusionCards() {
+            const container = document.getElementById('fusionCards');
+            const fusionTypes = { '单民族': [], '双民族融合': [], '多民族融合': [] };
+            buildings.forEach(b => {
+                const groups = (b.ethnic_groups || []).filter(g => !excludedEthnics.includes(g));
+                const count = groups.length;
+                if (count === 1) fusionTypes['单民族'].push(b);
+                else if (count === 2) fusionTypes['双民族融合'].push(b);
+                else if (count >= 3) fusionTypes['多民族融合'].push(b);
+            });
+            const fusionDescriptions = {
+                '单民族': '保留完整单一民族风格的建筑，展现各民族独特的建筑智慧与审美追求。',
+                '双民族融合': '两个民族共同参与建造的建筑，体现了民族间的技术交流与文化互鉴。',
+                '多民族融合': '三个及以上民族共同参与的建筑，是云南多民族文化交融的典型代表。'
+            };
+            container.innerHTML = Object.entries(fusionTypes).map(([type, items]) => `
+                <div class="fusion-card">
+                    <div class="fusion-title">${type}建筑 · ${items.length}座</div>
+                    <div class="fusion-desc">${fusionDescriptions[type]}</div>
+                    <div class="fusion-buildings">
+                        ${items.slice(0, 4).map(b => `<div class="fusion-building">• ${b.name}（${(b.ethnic_groups || []).filter(g => !excludedEthnics.includes(g)).join('、')}）</div>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function initPieChart() {
+            const chart = echarts.init(document.getElementById('ethnicPieChart'));
+            const sortedEthnics = Object.entries(ethnicCounts).sort((a, b) => b[1] - a[1]);
+            const maxCount = Math.max(...sortedEthnics.map(e => e[1]));
+            const totalEthnics = sortedEthnics.length;
+            
+            // 使用网格布局，让气泡分散排列
+            const bubbleData = [];
+            const cols = Math.ceil(Math.sqrt(totalEthnics * 1.5));
+            const rows = Math.ceil(totalEthnics / cols);
+            const cellWidth = 380 / cols;
+            const cellHeight = 380 / rows;
+            
+            sortedEthnics.forEach(([name, count], index) => {
+                // 气泡大小范围扩大，使差异更明显
+                const bubbleSize = 30 + (count / maxCount) * 70; // 气泡大小范围 30-100
+                const col = index % cols;
+                const row = Math.floor(index / cols);
+                // 在单元格中心位置添加随机偏移
+                const x = cellWidth * (col + 0.5) + (Math.random() - 0.5) * cellWidth * 0.3;
+                const y = cellHeight * (row + 0.5) + (Math.random() - 0.5) * cellHeight * 0.3;
+                bubbleData.push([x, y, bubbleSize, name, count]);
+            });
+            
+            chart.setOption({
+                backgroundColor: 'transparent',
+                tooltip: {
+                    trigger: 'item',
+                    formatter: function(params) {
+                        return params.data[3] + ': ' + params.data[4] + '座建筑';
+                    }
+                },
+                grid: { left: '5%', right: '20%', top: '5%', bottom: '5%', containLabel: false },
+                xAxis: { show: false, type: 'value', min: 0, max: 380 },
+                yAxis: { show: false, type: 'value', min: 0, max: 380, inverse: true },
+                series: [{
+                    type: 'scatter',
+                    data: bubbleData,
+                    symbolSize: function(data) { return data[2]; },
+                    itemStyle: {
+                        color: function(params) {
+                            return ethnicInfo[params.data[3]]?.color || '#c8a45c';
+                        },
+                        shadowBlur: 15,
+                        shadowColor: 'rgba(200, 164, 92, 0.4)',
+                        opacity: 0.9
+                    },
+                    label: {
+                        show: true,
+                        formatter: function(params) {
+                            return params.data[3] + '\n' + params.data[4] + '座';
+                        },
+                        position: 'inside',
+                        color: '#e8e4da',
+                        fontSize: 10,
+                        fontWeight: 'bold',
+                        textShadowColor: 'rgba(0,0,0,0.6)',
+                        textShadowBlur: 4
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 25,
+                            shadowColor: 'rgba(200, 164, 92, 0.7)',
+                            opacity: 1
+                        },
+                        label: { show: true, fontSize: 12 }
+                    }
+                }],
+                legend: {
+                    type: 'scroll',
+                    orient: 'vertical',
+                    right: 5,
+                    top: 'middle',
+                    textStyle: { color: '#9a958a', fontSize: 11 },
+                    formatter: name => name + '  ' + (ethnicCounts[name] || 0) + '座'
+                }
+            });
+            return chart;
+        }
+
+        function initNetworkChart() {
+            const chart = echarts.init(document.getElementById('ethnicNetworkChart'));
+            const sortedEthnics = Object.entries(ethnicCounts).sort((a, b) => b[1] - a[1]);
+            const ethnicNames = sortedEthnics.map(e => e[0]);
+            const links = [];
+            buildings.forEach(b => {
+                const groups = (b.ethnic_groups || []).filter(g => !excludedEthnics.includes(g));
+                for (let i = 0; i < groups.length; i++) {
+                    for (let j = i + 1; j < groups.length; j++) {
+                        const existing = links.find(l => (l.source === groups[i] && l.target === groups[j]) || (l.source === groups[j] && l.target === groups[i]));
+                        if (existing) existing.value++;
+                        else links.push({ source: groups[i], target: groups[j], value: 1 });
+                    }
+                }
+            });
+            const totalNodes = ethnicNames.length;
+            const nodes = ethnicNames.map((name, index) => {
+                const angle = (index / totalNodes) * Math.PI * 2 - Math.PI / 2;
+                const radius = 120;
+                return {
+                    name: name, symbolSize: Math.max(20, Math.min(40, ethnicCounts[name] * 1.2)), value: ethnicCounts[name],
+                    x: Math.cos(angle) * radius, y: Math.sin(angle) * radius,
+                    itemStyle: { color: ethnicInfo[name]?.color || '#c8a45c' },
+                    label: { show: true, position: 'outside', formatter: '{b}', color: '#e8e4da', fontSize: 11 }
+                };
+            });
+            chart.setOption({
+                backgroundColor: 'transparent',
+                tooltip: { formatter: p => p.dataType === 'edge' ? `${p.data.source} ↔ ${p.data.target}<br/>共同参与: ${p.data.value}座建筑` : `${p.name}<br/>参与建筑: ${ethnicCounts[p.name]}座` },
+                series: [{
+                    type: 'graph', layout: 'none', animation: true, data: nodes,
+                    links: links.map(l => ({
+                        source: l.source, target: l.target, value: l.value,
+                        lineStyle: { width: Math.min(l.value * 0.6 + 0.5, 3), opacity: 0.3 + Math.min(l.value / 5, 1) * 0.5,
+                            color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: ethnicInfo[l.source]?.color || '#c8a45c' }, { offset: 1, color: ethnicInfo[l.target]?.color || '#c8a45c' }] } }
+                    })),
+                    roam: true, lineStyle: { curveness: 0.3 },
+                    emphasis: { focus: 'adjacency', lineStyle: { width: 4, opacity: 1 } },
+                    itemStyle: { borderColor: '#0a0908', borderWidth: 2, shadowBlur: 10, shadowColor: 'rgba(200, 164, 92, 0.3)' }
+                }]
+            });
+            return chart;
+        }
+
+        function buildFusionData() {
+            const fusionData = { '单民族建筑': {}, '双民族融合建筑': {}, '多民族融合建筑': {} };
+            buildings.forEach(b => {
+                const groups = (b.ethnic_groups || []).filter(g => g && !excludedEthnics.includes(g));
+                // 跳过没有民族信息的建筑
+                if (groups.length === 0) return;
+                
+                const comboKey = groups.sort().join(' + ');
+                let category = '单民族建筑';
+                if (groups.length === 2) category = '双民族融合建筑';
+                else if (groups.length >= 3) category = '多民族融合建筑';
+                if (!fusionData[category][comboKey]) fusionData[category][comboKey] = [];
+                fusionData[category][comboKey].push(b.name);
+            });
+            return fusionData;
+        }
+
+        function initSunburstChart() {
+            const chart = echarts.init(document.getElementById('sunburstChart'));
+            const fusionData = buildFusionData();
+            const sunburstData = Object.entries(fusionData).map(([category, combos]) => ({
+                name: category,
+                children: Object.entries(combos).map(([combo, buildings]) => ({ name: combo, value: buildings.length, buildings: buildings, itemStyle: { color: categoryColors[category] } })),
+                itemStyle: { color: categoryColors[category] }
+            }));
+            chart.setOption({
+                backgroundColor: 'transparent',
+                tooltip: { formatter: p => p.data.buildings ? `${p.name}<br/>建筑数量: ${p.value}座<br/>建筑: ${p.data.buildings.slice(0, 3).join('、')}${p.data.buildings.length > 3 ? '...' : ''}` : `${p.name}<br/>建筑数量: ${p.value}座` },
+                series: [{
+                    type: 'sunburst', data: sunburstData, radius: ['15%', '90%'], center: ['50%', '50%'], sort: undefined, emphasis: { focus: 'ancestor' },
+                    levels: [
+                        {},
+                        { r0: '15%', r: '45%', label: { rotate: 'tangential', color: '#e8e4da', fontSize: 12 }, itemStyle: { borderWidth: 2, borderColor: '#0a0908' } },
+                        { r0: '45%', r: '75%', label: { color: '#e8e4da', fontSize: 10, formatter: p => p.value >= 3 ? p.name : '' }, itemStyle: { borderWidth: 1, borderColor: '#0a0908', opacity: 0.8 } },
+                        { r0: '75%', r: '90%', label: { position: 'outside', padding: 3, color: '#9a958a', fontSize: 9, formatter: '{c}座' }, itemStyle: { borderWidth: 1, borderColor: '#0a0908', opacity: 0.6 } }
+                    ]
+                }]
+            });
+            return chart;
+        }
+
+        // 民族建筑历史演变时间轴气泡图
+        function initTimelineChart() {
+            const chart = echarts.init(document.getElementById('ethnicTimelineChart'));
+            
+            // 获取所有民族列表
+            const allEthnics = [...new Set(buildings.flatMap(b => 
+                (b.ethnic_groups || []).filter(g => !excludedEthnics.includes(g))
+            ))].sort((a, b) => {
+                // 按建筑数量排序
+                const countA = buildings.filter(b => b.ethnic_groups?.includes(a)).length;
+                const countB = buildings.filter(b => b.ethnic_groups?.includes(b)).length;
+                return countB - countA;
+            });
+            
+            // 为每个民族分配Y轴位置
+            const ethnicYPos = {};
+            allEthnics.forEach((ethnic, index) => {
+                ethnicYPos[ethnic] = index;
+            });
+            
+            // 按年份整理建筑数据
+            const yearData = {};
+            buildings.forEach(b => {
+                const year = b.year_built;
+                if (!year || year < 1000) return;
+                
+                const groups = (b.ethnic_groups || []).filter(g => !excludedEthnics.includes(g));
+                if (groups.length === 0) return;
+                
+                // 按年代分组（每50年一组）
+                const era = Math.floor(year / 50) * 50;
+                const eraKey = `${era}-${era + 49}`;
+                
+                if (!yearData[eraKey]) {
+                    yearData[eraKey] = {
+                        startYear: era,
+                        ethnicCounts: {} // 每个民族的建筑数量
+                    };
+                }
+                
+                // 统计每个民族的建筑数
+                groups.forEach(g => {
+                    yearData[eraKey].ethnicCounts[g] = (yearData[eraKey].ethnicCounts[g] || 0) + 1;
+                });
+            });
+            
+            // 按年代排序
+            const sortedEras = Object.entries(yearData).sort((a, b) => a[1].startYear - b[1].startYear);
+            
+            // 生成时间轴选项 - 不累加，只显示当前年代的数据
+            const timelineOptions = sortedEras.map(([eraKey, data], eraIndex) => {
+                // 只使用当前年代的民族建筑数量（不累加）
+                const currentEthnicCounts = data.ethnicCounts;
+                
+                // 生成气泡数据 - 每个民族一个气泡
+                const bubbleData = Object.entries(currentEthnicCounts).map(([ethnic, count]) => {
+                    const yPos = ethnicYPos[ethnic];
+                    // 气泡大小：建筑数量越多越大
+                    const size = 25 + Math.sqrt(count) * 12;
+                    
+                    return {
+                        value: [data.startYear + 25, yPos, size, ethnic, count],
+                        name: ethnic,
+                        itemStyle: {
+                            color: ethnicInfo[ethnic]?.color || '#c8a45c'
+                        }
+                    };
+                });
+                
+                const totalBuildings = Object.values(currentEthnicCounts).reduce((a, b) => a + b, 0);
+                const totalEthnics = Object.keys(currentEthnicCounts).length;
+                
+                return {
+                    title: {
+                        text: `${data.startYear}年 - ${data.startYear + 49}年`,
+                        subtext: `${totalEthnics} 个民族参与 ${totalBuildings} 座建筑`,
+                        left: 'center',
+                        top: 10,
+                        textStyle: { color: '#e8e4da', fontSize: 18 },
+                        subtextStyle: { color: '#9a958a', fontSize: 13 }
+                    },
+                    series: [{
+                        data: bubbleData
+                    }]
+                };
+            });
+            
+            // 获取第一个年代的数据作为初始数据
+            const firstEraData = sortedEras.length > 0 ? sortedEras[0][1] : { ethnicCounts: {}, startYear: 1300 };
+            
+            const initialBubbleData = Object.entries(firstEraData.ethnicCounts).map(([ethnic, count]) => {
+                const yPos = ethnicYPos[ethnic];
+                const size = 25 + Math.sqrt(count) * 12;
+                return {
+                    value: [firstEraData.startYear + 25, yPos, size, ethnic, count],
+                    name: ethnic,
+                    itemStyle: { color: ethnicInfo[ethnic]?.color || '#c8a45c' }
+                };
+            });
+            
+            chart.setOption({
+                backgroundColor: 'transparent',
+                baseOption: {
+                    timeline: {
+                        axisType: 'category',
+                        autoPlay: true,
+                        playInterval: 2500,
+                        data: sortedEras.map(([eraKey]) => eraKey),
+                        left: 80,
+                        right: 80,
+                        bottom: 30,
+                        label: {
+                            color: '#9a958a',
+                            fontSize: 10,
+                            formatter: function(s) {
+                                const year = parseInt(s.split('-')[0]);
+                                return year + '年';
+                            }
+                        },
+                        lineStyle: { color: '#3a3530' },
+                        itemStyle: { color: '#5a5550', borderColor: '#c8a45c' },
+                        checkpointStyle: { color: '#c8a45c', borderColor: '#c8a45c' },
+                        controlStyle: { color: '#c8a45c', borderColor: '#c8a45c' },
+                        emphasis: {
+                            itemStyle: { color: '#c8a45c' },
+                            label: { color: '#e8e4da' }
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'item',
+                        formatter: function(params) {
+                            const d = params.data.value;
+                            return `<strong style="color:${ethnicInfo[d[3]]?.color || '#c8a45c'}">${d[3]}</strong><br/>
+                                    累计参与建筑: <strong>${d[4]}</strong> 座`;
+                        }
+                    },
+                    grid: {
+                        left: 80,
+                        right: 40,
+                        top: 80,
+                        bottom: 80
+                    },
+                    xAxis: {
+                        type: 'value',
+                        name: '年代',
+                        nameLocation: 'middle',
+                        nameGap: 30,
+                        nameTextStyle: { color: '#9a958a', fontSize: 12 },
+                        min: 1300,
+                        max: 1950,
+                        axisLine: { lineStyle: { color: '#3a3530' } },
+                        axisLabel: { color: '#9a958a', fontSize: 10 },
+                        splitLine: { lineStyle: { color: '#2a2520', type: 'dashed' } }
+                    },
+                    yAxis: {
+                        type: 'category',
+                        name: '民族',
+                        nameLocation: 'middle',
+                        nameGap: 70,
+                        nameTextStyle: { color: '#9a958a', fontSize: 12 },
+                        data: allEthnics,
+                        axisLine: { lineStyle: { color: '#3a3530' } },
+                        axisLabel: { 
+                            fontSize: 12,
+                            fontWeight: 'bold',
+                            color: function(value) {
+                                // 为每个民族标签设置对应颜色
+                                return ethnicInfo[value]?.color || '#c8a45c';
+                            }
+                        },
+                        splitLine: { lineStyle: { color: '#2a2520', type: 'dashed' } }
+                    },
+                    series: [{
+                        type: 'scatter',
+                        name: '民族建筑',
+                        data: initialBubbleData,
+                        symbolSize: function(data) {
+                            return data[2];
+                        },
+                        itemStyle: {
+                            shadowBlur: 15,
+                            shadowColor: 'rgba(200, 164, 92, 0.4)',
+                            opacity: 0.9
+                        },
+                        label: {
+                            show: true,
+                            formatter: function(params) {
+                                return params.data.value[4];
+                            },
+                            position: 'inside',
+                            color: '#e8e4da',
+                            fontSize: 11,
+                            fontWeight: 'bold',
+                            textShadowColor: 'rgba(0,0,0,0.5)',
+                            textShadowBlur: 3
+                        },
+                        emphasis: {
+                            itemStyle: {
+                                shadowBlur: 25,
+                                shadowColor: 'rgba(200, 164, 92, 0.7)',
+                                opacity: 1
+                            },
+                            label: {
+                                show: true,
+                                fontSize: 13
+                            }
+                        }
+                    }],
+                    legend: {
+                        type: 'scroll',
+                        orient: 'vertical',
+                        right: 10,
+                        top: 'middle',
+                        textStyle: { color: '#9a958a', fontSize: 11 },
+                        formatter: function(name) {
+                            return name;
+                        },
+                        data: allEthnics.map(e => ({
+                            name: e,
+                            itemStyle: { color: ethnicInfo[e]?.color || '#c8a45c' }
+                        }))
+                    }
+                },
+                options: timelineOptions
+            });
+            
+            return chart;
+        }
+
+        renderEthnicSelector();
+        renderFusionCards();
+        const pieChart = initPieChart();
+        const networkChart = initNetworkChart();
+        const sunburstChart = initSunburstChart();
+        const timelineChart = initTimelineChart();
+
+        window.addEventListener('resize', () => {
+            pieChart.resize();
+            networkChart.resize();
+            sunburstChart.resize();
+            timelineChart.resize();
+        });
+    </script>
+</body>
+</html>

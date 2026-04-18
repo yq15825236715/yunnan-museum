@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>回望·尾声 - 滇韵古建</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/data.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: #0a0a0a;
+            overflow: hidden;
+            font-family: 'Noto Serif SC', 'SimSun', 'STSong', serif;
+        }
+
+        /* 全屏背景 */
+        .fullscreen-bg {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.7)),
+                url('assets/images/hero-bg.jpg') center/cover no-repeat;
+            z-index: 0;
+            transition: opacity 1.5s ease;
+        }
+
+        /* 备用背景 - 如果没有图片 */
+        .fullscreen-bg::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                radial-gradient(ellipse at 30% 30%, rgba(139, 90, 43, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 70%, rgba(93, 122, 110, 0.1) 0%, transparent 50%),
+                linear-gradient(180deg, #0a0a0a 0%, #1a1510 50%, #0a0a0a 100%);
+        }
+
+        /* 导航栏透明化 */
+        .navbar {
+            background: transparent !important;
+            border-bottom: 1px solid rgba(200, 164, 92, 0.1);
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+        }
+
+        /* 主容器 */
+        .immersive-container {
+            position: relative;
+            z-index: 1;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 80px 20px 40px;
+        }
+
+        /* 标题 */
+        .immersive-header {
+            text-align: center;
+            margin-bottom: 30px;
+            opacity: 0;
+            transform: translateY(-30px);
+            transition: all 1s ease;
+        }
+
+        .immersive-header.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .immersive-badge {
+            display: inline-block;
+            padding: 6px 20px;
+            border: 1px solid rgba(200, 164, 92, 0.4);
+            font-size: 11px;
+            color: rgba(200, 164, 92, 0.8);
+            letter-spacing: 6px;
+            margin-bottom: 15px;
+        }
+
+        .immersive-title {
+            font-size: 36px;
+            color: rgba(255, 255, 255, 0.9);
+            letter-spacing: 16px;
+            font-weight: 300;
+            text-shadow: 0 0 60px rgba(200, 164, 92, 0.3);
+        }
+
+        /* 问答舞台 */
+        .qa-stage {
+            text-align: center;
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 问题 */
+        .question-display {
+            font-size: 42px;
+            color: rgba(255, 255, 255, 0.95);
+            letter-spacing: 8px;
+            margin-bottom: 50px;
+            text-shadow: 0 0 40px rgba(200, 164, 92, 0.4);
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s ease;
+            font-weight: 300;
+        }
+
+        .question-display.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 问题上移动画 */
+        .qa-stage.show-answer .question-display {
+            transform: translateY(-30px);
+            font-size: 32px;
+            margin-bottom: 30px;
+        }
+
+        /* 答案 */
+        .answer-display {
+            font-size: 22px;
+            color: rgba(255, 255, 255, 0.75);
+            line-height: 2.2;
+            letter-spacing: 3px;
+            min-height: 120px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease;
+        }
+
+        .answer-display.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 打字机光标 */
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1em;
+            background: rgba(200, 164, 92, 0.8);
+            margin-left: 5px;
+            animation: blink 1s infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* 高亮样式 */
+        .answer-display .number {
+            color: #C8A45C;
+        }
+
+        .answer-display .building {
+            color: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid rgba(200, 164, 92, 0.5);
+        }
+
+        .answer-display .ethnic {
+            display: inline-block;
+            padding: 2px 12px;
+            background: rgba(200, 164, 92, 0.15);
+            border: 1px solid rgba(200, 164, 92, 0.3);
+            border-radius: 20px;
+            font-size: 16px;
+            color: #C8A45C;
+            margin: 0 3px;
+        }
+
+        /* 控制区 */
+        .controls-area {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            z-index: 10;
+        }
+
+        .progress-dots {
+            display: flex;
+            gap: 12px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dot.active {
+            background: rgba(200, 164, 92, 0.9);
+            box-shadow: 0 0 15px rgba(200, 164, 92, 0.5);
+        }
+
+        .dot:hover {
+            background: rgba(200, 164, 92, 0.6);
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .ctrl-btn {
+            padding: 12px 30px;
+            background: transparent;
+            border: 1px solid rgba(200, 164, 92, 0.3);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .ctrl-btn:hover {
+            background: rgba(200, 164, 92, 0.1);
+            border-color: rgba(200, 164, 92, 0.6);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* 结尾画面 */
+        .ending-screen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1.5s ease;
+            z-index: 50;
+            background: 
+                linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)),
+                radial-gradient(ellipse at center, rgba(139, 90, 43, 0.1) 0%, transparent 70%);
+        }
+
+        .ending-screen.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .ending-quote {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 2.5;
+            letter-spacing: 4px;
+            margin-bottom: 30px;
+        }
+
+        .ending-highlight {
+            font-size: 36px;
+            color: #C8A45C;
+            letter-spacing: 8px;
+            margin: 30px 0;
+            text-shadow: 0 0 40px rgba(200, 164, 92, 0.5);
+        }
+
+        .ending-stats {
+            display: flex;
+            gap: 60px;
+            margin-top: 50px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 48px;
+            color: #C8A45C;
+            font-family: 'Georgia', serif;
+            font-weight: 200;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 3px;
+            margin-top: 5px;
+        }
+
+        .ending-nav {
+            display: flex;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        /* 参考书籍区域 */
+        .references-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(200, 164, 92, 0.2);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .references-title {
+            font-size: 14px;
+            color: rgba(200, 164, 92, 0.8);
+            letter-spacing: 4px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .references-title::before,
+        .references-title::after {
+            content: '';
+            width: 30px;
+            height: 1px;
+            background: rgba(200, 164, 92, 0.3);
+        }
+
+        .references-preview {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            text-align: left;
+        }
+
+        .reference-item {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 1px;
+            line-height: 1.6;
+            padding-left: 15px;
+            position: relative;
+        }
+
+        .reference-item::before {
+            content: '·';
+            position: absolute;
+            left: 0;
+            color: rgba(200, 164, 92, 0.6);
+        }
+
+        .reference-item .author {
+            color: rgba(200, 164, 92, 0.7);
+        }
+
+        .expand-btn {
+            margin-top: 15px;
+            padding: 8px 20px;
+            background: transparent;
+            border: 1px solid rgba(200, 164, 92, 0.3);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .expand-btn:hover {
+            background: rgba(200, 164, 92, 0.1);
+            border-color: rgba(200, 164, 92, 0.6);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* 展开后的完整列表 */
+        .references-full {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .references-full.visible {
+            display: flex;
+        }
+
+        .references-preview.hidden {
+            display: none;
+        }
+
+        /* 自定义滚动条 */
+        .references-full::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .references-full::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .references-full::-webkit-scrollbar-thumb {
+            background: rgba(200, 164, 92, 0.3);
+            border-radius: 2px;
+        }
+
+        .ending-btn {
+            padding: 15px 40px;
+            background: transparent;
+            border: 1px solid rgba(200, 164, 92, 0.4);
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            letter-spacing: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .ending-btn:hover {
+            background: rgba(200, 164, 92, 0.15);
+            border-color: #C8A45C;
+            color: #fff;
+        }
+
+        /* 淡入淡出过渡 */
+        .fade-transition {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #0a0a0a;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .fade-transition.active {
+            opacity: 1;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .question-display { font-size: 28px; letter-spacing: 4px; }
+            .answer-display { font-size: 16px; }
+            .ending-stats { gap: 30px; flex-wrap: wrap; justify-content: center; }
+            .stat-number { font-size: 36px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="fullscreen-bg"></div>
+    <div class="fade-transition" id="fadeTransition"></div>
+    
+    <nav class="navbar">
+        <div class="nav-logo" onclick="navigateTo('home.html')">
+            <div class="nav-logo-icon"><img src="assets/icons/icon.png" alt="滇"></div>
+            <span class="nav-logo-text">滇韵古建</span>
+        </div>
+        <div class="nav-links">
+            <a href="javascript:void(0)" class="nav-link" onclick="navigateTo('home.html')">首页</a>
+            <a href="javascript:void(0)" class="nav-link" onclick="navigateTo('hall-timeline.html')">时光长廊</a>
+            <a href="javascript:void(0)" class="nav-link" onclick="navigateTo('hall-map.html')">地理长卷</a>
+            <div class="nav-dropdown">
+                <span class="nav-link">更多展厅 ▾</span>
+                <div class="nav-dropdown-menu">
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-types.html')">建筑万象</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-ethnic.html')">民族交融</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-tech.html')">匠心传承</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-protection.html')">守护重生</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-insights.html')">回望·尾声</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-gallery.html')">建筑图鉴</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="immersive-container">
+        <div class="immersive-header" id="header">
+            <div class="immersive-badge">尾声</div>
+            <h1 class="immersive-title">回 望</h1>
+        </div>
+
+        <div class="qa-stage">
+            <div class="question-display" id="question"></div>
+            <div class="answer-display" id="answer"></div>
+        </div>
+    </main>
+
+    <div class="controls-area">
+        <div class="progress-dots" id="progressDots"></div>
+        <div class="control-buttons">
+            <button class="ctrl-btn" onclick="prevQuestion()">◀</button>
+            <button class="ctrl-btn" id="pauseBtn" onclick="togglePause()">⏸</button>
+            <button class="ctrl-btn" onclick="nextQuestion()">▶</button>
+        </div>
+    </div>
+
+    <div class="ending-screen" id="endingScreen">
+        <div class="ending-quote">
+            <p>这不是终点，而是一个邀请。</p>
+            <p>数据会老去，建筑会老去，但记忆不会。</p>
+        </div>
+        <div class="ending-highlight">63座建筑，等你走近。</div>
+<div class="ending-stats">
+            <div class="stat-item"><div class="stat-number">13</div><div class="stat-label">个州市</div></div>
+            <div class="stat-item"><div class="stat-number">63</div><div class="stat-label">座建筑</div></div>
+            <div class="stat-item"><div class="stat-number">15</div><div class="stat-label">个民族</div></div>
+            <div class="stat-item"><div class="stat-number">650</div><div class="stat-label">年跨度</div></div>
+        </div>
+        <!-- 参考书籍区域 -->
+        <div class="references-section">
+            <div class="references-title">参考书籍</div>
+            <div class="references-preview" id="referencesPreview">
+                <!-- 动态生成 -->
+            </div>
+            <div class="references-full" id="referencesFull">
+                <!-- 动态生成 -->
+            </div>
+            <button class="expand-btn" id="expandBtn" onclick="toggleReferences()">展开查看</button>
+        </div>
+
+        <div class="ending-nav">
+            <a href="javascript:void(0)" class="ending-btn" onclick="navigateTo('hall-protection.html')">← 守护重生</a>
+            <a href="javascript:void(0)" class="ending-btn" onclick="navigateTo('hall-gallery.html')">建筑图鉴 →</a>
+            <a href="javascript:void(0)" class="ending-btn" onclick="navigateTo('home.html')">返回首页</a>
+        </div>
+    </div>
+
+    <script>
+        function navigateTo(url) {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'navigate', url: url }, '*');
+            } else {
+                window.location.href = url;
+            }
+        }
+
+        const qaData = [
+            { q: "我们走了多远？", a: "13个州市，63座建筑。最远的那座在怒江峡谷深处——那是迪麻洛的木屋，怒族、傈僳族、藏族共居于此。大理的建筑最多，有10座；怒江紧随其后，9座藏在大峡谷里。", 
+              ethnics: ["怒族", "傈僳族", "藏族", "白族"],
+              buildings: ["迪麻洛民族混合传统民居建筑群", "喜洲白族古建築群", "诺邓白族乡土建筑群", "雾里怒族传统民居建筑群"] },
+            { q: "时间都藏在哪里？", a: "藏在650年的跨度里——从1253年金龙桥的第一块基石，到1903年马家大院落成。最古老的金龙桥，已站了773年。每一座建筑，我们都找到了它的生辰。", 
+              ethnics: ["汉族", "白族", "回族", "彝族"],
+              buildings: ["金龙桥", "马家大院", "大回村马家大院", "黑井武家大院"] },
+            { q: "民族如何相遇？", a: "15个民族，在一座土司衙署里相遇，在一座风雨桥上相遇。\n\n汉族参与33座，白族12座，彝族11座。\n\n13座建筑有三民族以上的融合。", 
+              ethnics: ["汉族", "白族", "彝族", "傣族"],
+              buildings: ["孟连宣抚司署", "南甸宣抚司署", "叶枝土司衙署", "云南贡院"] },
+            { q: "建筑与技术如何交织？", a: "木结构撑起云南大半个天空——穿斗式、抬梁式、井干式，三种木构，流进白族的「三坊一照壁」，流进傣族的竹楼，也流进汉族的官式大宅。\n\n类型更是多样：13座传统民居建筑群，5座土司衙署，15座桥梁——古桥、廊桥、风雨桥，桥桥有故事。从合院式民居到干栏式竹楼，每一类型都是一种生活方式的凝固。", 
+              ethnics: ["白族", "傣族", "汉族", "纳西族"],
+              buildings: ["建水朱家花园", "整董傣族传统民居建筑群", "双龙桥", "天缘桥"] },
+            { q: "保护意味着什么？", a: "18座国保，35座省保，6座市县级。\n\n但有一个数字更值得记住——59座建筑有过重建记录。\n\n保护不是把建筑锁起来，是让每一代人都有机会说：这座建筑，我也要守护。\n\n数据能告诉你大理有10座建筑，但不能告诉你站在金龙桥上，金沙江的风有多冷。\n\n那需要你的脚步。", 
+              ethnics: ["汉族", "纳西族", "傈僳族", "藏族"],
+              buildings: ["金龙桥", "云龙桥", "双虹桥", "保兴桥"] }
+        ];
+
+        let current = 0;
+        let paused = false;
+        let timer = null;
+        let charIndex = 0;
+        let currentText = '';
+
+        function initDots() {
+            document.getElementById('progressDots').innerHTML = qaData.map((_, i) => 
+                `<div class="dot ${i === 0 ? 'active' : ''}" onclick="goTo(${i})"></div>`
+            ).join('');
+        }
+
+        function updateDots() {
+            document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+        }
+
+        function showQuestion(idx) {
+            const data = qaData[idx];
+            const qEl = document.getElementById('question');
+            const aEl = document.getElementById('answer');
+            const stage = document.querySelector('.qa-stage');
+            
+            // 立即重置并显示新问题
+            stage.classList.remove('show-answer');
+            aEl.classList.remove('visible');
+            aEl.innerHTML = '';
+            
+            // 直接设置新问题并显示
+            qEl.textContent = data.q;
+            qEl.classList.add('visible');
+            
+            // 问题显示后，上移并显示答案
+            setTimeout(() => {
+                stage.classList.add('show-answer');
+                // 一次性显示答案，高亮数字，句号分号换行
+                let html = data.a
+                    .replace(/。/g, '。<br><br>')
+                    .replace(/；/g, '；<br><br>')
+                    .replace(/(\d+)/g, '<span class="number">$1</span>');
+                aEl.innerHTML = html;
+                aEl.classList.add('visible');
+                // 根据文字长度计算阅读时间（平均每秒阅读5个字）
+                const readingTime = Math.max(4000, data.a.length * 200);
+                scheduleNext(readingTime);
+            }, 1500);
+            
+            updateDots();
+        }
+
+        function scheduleNext(delay) {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(() => {
+                if (!paused) nextQuestion();
+            }, delay || 5000);
+        }
+
+        function nextQuestion() {
+            if (current < qaData.length - 1) {
+                current++;
+                showQuestion(current);
+            } else {
+                showEnding();
+            }
+        }
+
+        function prevQuestion() {
+            if (current > 0) {
+                current--;
+                showQuestion(current);
+            }
+        }
+
+        function goTo(idx) {
+            current = idx;
+            showQuestion(current);
+        }
+
+        function togglePause() {
+            paused = !paused;
+            document.getElementById('pauseBtn').textContent = paused ? '▶' : '⏸';
+        }
+
+        function showEnding() {
+            document.querySelector('.immersive-container').style.opacity = '0';
+            document.getElementById('endingScreen').classList.add('visible');
+        }
+
+        // 参考书籍展开/收起功能
+        let referencesExpanded = false;
+        function toggleReferences() {
+            const preview = document.getElementById('referencesPreview');
+            const full = document.getElementById('referencesFull');
+            const btn = document.getElementById('expandBtn');
+            
+            referencesExpanded = !referencesExpanded;
+            
+            if (referencesExpanded) {
+                preview.classList.add('hidden');
+                full.classList.add('visible');
+                btn.textContent = '收起列表';
+            } else {
+                preview.classList.remove('hidden');
+                full.classList.remove('visible');
+                btn.textContent = '展开查看';
+            }
+        }
+
+        // 从BUILDINGS数据中提取并去重参考书籍
+        function extractReferences() {
+            if (typeof BUILDINGS === 'undefined') return [];
+            
+            const allReferences = new Set();
+            BUILDINGS.forEach(building => {
+                if (building.reference_books && Array.isArray(building.reference_books)) {
+                    building.reference_books.forEach(ref => {
+                        if (ref && ref.trim()) {
+                            allReferences.add(ref.trim());
+                        }
+                    });
+                }
+            });
+            
+            return Array.from(allReferences).sort((a, b) => a.localeCompare(b, 'zh-CN'));
+        }
+
+        // 渲染参考书籍列表
+        function renderReferences() {
+            const references = extractReferences();
+            const previewContainer = document.getElementById('referencesPreview');
+            const fullContainer = document.getElementById('referencesFull');
+            
+            if (references.length === 0) {
+                previewContainer.innerHTML = '<div class="reference-item">暂无参考书籍信息</div>';
+                return;
+            }
+            
+            // 预览显示前3个
+            const previewHtml = references.slice(0, 3).map(ref => 
+                `<div class="reference-item">${ref}</div>`
+            ).join('');
+            previewContainer.innerHTML = previewHtml;
+            
+            // 完整列表
+            const fullHtml = references.map(ref => 
+                `<div class="reference-item">${ref}</div>`
+            ).join('');
+            fullContainer.innerHTML = fullHtml;
+            
+            // 更新按钮文字
+            const btn = document.getElementById('expandBtn');
+            btn.textContent = `展开查看（共${references.length}本）`;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('header').classList.add('visible');
+            initDots();
+            renderReferences(); // 渲染参考书籍
+            setTimeout(() => showQuestion(0), 500);
+        });
+    </script>
+</body>
+</html>
