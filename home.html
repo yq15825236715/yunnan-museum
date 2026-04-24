@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>滇风·民族筑语</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* 入口页专用样式 */
+        .entrance {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px;
+            position: relative;
+        }
+
+        .entrance::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse at 50% 30%, rgba(200, 164, 92, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 30% 70%, rgba(164, 51, 48, 0.05) 0%, transparent 40%),
+                radial-gradient(ellipse at 70% 80%, rgba(93, 122, 110, 0.05) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        .entrance-badge {
+            font-size: 11px;
+            letter-spacing: 6px;
+            color: var(--gold);
+            border: 1px solid var(--border-dim);
+            padding: 10px 25px;
+            margin-bottom: 50px;
+            opacity: 0;
+            animation: fadeIn 0.8s ease 0.3s forwards;
+        }
+
+        .entrance-title {
+            font-size: 72px;
+            font-weight: 200;
+            letter-spacing: 25px;
+            color: var(--gold);
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: fadeIn 1s ease 0.5s forwards;
+            text-shadow: 0 0 60px rgba(200, 164, 92, 0.3);
+        }
+
+        .entrance-subtitle {
+            font-size: 16px;
+            color: var(--text-dim);
+            letter-spacing: 8px;
+            margin-bottom: 60px;
+            opacity: 0;
+            animation: fadeIn 0.8s ease 0.8s forwards;
+        }
+
+        .entrance-stats {
+            display: flex;
+            gap: 60px;
+            margin-bottom: 60px;
+            opacity: 0;
+            animation: fadeIn 0.8s ease 1s forwards;
+        }
+
+        .entrance-stat {
+            text-align: center;
+        }
+
+        .entrance-stat-num {
+            font-size: 48px;
+            font-weight: 200;
+            color: var(--gold);
+            letter-spacing: 5px;
+        }
+
+        .entrance-stat-label {
+            font-size: 12px;
+            color: var(--text-dim);
+            letter-spacing: 3px;
+            margin-top: 5px;
+        }
+
+        .entrance-btn {
+            opacity: 0;
+            animation: fadeIn 0.8s ease 1.3s forwards;
+        }
+
+        /* 展厅选择 */
+        .hall-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            padding: 40px 0 80px;
+        }
+
+        .hall-card {
+            position: relative;
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 8px;
+            padding: 30px 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s;
+            overflow: hidden;
+        }
+
+        .hall-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold), var(--vermillion));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .hall-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px rgba(200, 164, 92, 0.15);
+        }
+
+        .hall-card:hover::before {
+            opacity: 1;
+        }
+
+        .hall-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hall-icon img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 12px rgba(200, 164, 92, 0.3));
+            transition: transform 0.3s;
+        }
+
+        .hall-card:hover .hall-icon img {
+            transform: scale(1.1);
+        }
+
+        .hall-name {
+            font-size: 16px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+
+        .hall-desc {
+            font-size: 12px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            line-height: 1.8;
+        }
+
+        .hall-num {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 11px;
+            color: var(--gold-dim);
+            letter-spacing: 1px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 1200px) {
+            .hall-grid { grid-template-columns: repeat(3, 1fr); }
+            .entrance-title { font-size: 56px; letter-spacing: 15px; }
+        }
+
+        @media (max-width: 768px) {
+            .hall-grid { grid-template-columns: repeat(2, 1fr); }
+            .entrance-title { font-size: 36px; letter-spacing: 8px; }
+            .entrance-stats { flex-direction: column; gap: 30px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-logo" onclick="navigateTo('home.html')">
+            <div class="nav-logo-icon"><img src="assets/icons/icon.png" alt="滇"></div>
+            <span class="nav-logo-text">滇风·民族筑语</span>
+        </div>
+        <div class="nav-links">
+            <a href="javascript:void(0)" class="nav-link active" onclick="navigateTo('home.html')">首页</a>
+            <a href="javascript:void(0)" class="nav-link" onclick="navigateTo('hall-timeline.html')">时光长廊</a>
+            <a href="javascript:void(0)" class="nav-link" onclick="navigateTo('hall-map.html')">地理长卷</a>
+            <div class="nav-dropdown">
+                <span class="nav-link">更多展厅 ▾</span>
+                <div class="nav-dropdown-menu">
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-types.html')">建筑万象</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-ethnic.html')">民族交融</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-tech.html')">匠心传承</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-protection.html')">守护重生</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-insights.html')">回望·尾声</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-gallery.html')">建筑图鉴</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="entrance">
+            <div class="entrance-badge">滇风·民族筑语 </div>
+            
+            <h1 class="entrance-title">云南古建筑</h1>
+            <p class="entrance-subtitle">六百载春秋 寻滇南匠意</p>
+            
+            <div class="entrance-stats">
+                <div class="entrance-stat">
+                    <div class="entrance-stat-num" id="totalBuildings">-</div>
+                    <div class="entrance-stat-label">古建筑</div>
+                </div>
+                <div class="entrance-stat">
+                    <div class="entrance-stat-num">15</div>
+                    <div class="entrance-stat-label">民族交融</div>
+                </div>
+                <div class="entrance-stat">
+                    <div class="entrance-stat-num">600+</div>
+                    <div class="entrance-stat-label">年历史</div>
+                </div>
+            </div>
+            
+            <div class="entrance-btn">
+                <button class="btn btn-primary" onclick="document.getElementById('halls').scrollIntoView({behavior: 'smooth'})">
+                    进入展厅 →
+                </button>
+            </div>
+        </section>
+
+        <!-- 展厅选择 -->
+        <section id="halls" class="container">
+            <div class="section-header">
+                <div class="section-badge">八大厅</div>
+                <h2 class="section-title">展厅导览</h2>
+                <p class="section-subtitle">选择展厅，开启探索之旅</p>
+            </div>
+
+            <div class="hall-grid">
+                <div class="hall-card" onclick="navigateTo('hall-timeline.html')">
+                    <div class="hall-num">01</div>
+                    <div class="hall-icon"><img src="assets/icons/时光长廊.png" alt="时光长廊"></div>
+                    <div class="hall-name">时光长廊</div>
+                    <div class="hall-desc">穿越六百年<br>见证建造轨迹</div>
+                </div>
+
+                <div class="hall-card" onclick="navigateTo('hall-map.html')">
+                    <div class="hall-num">02</div>
+                    <div class="hall-icon"><img src="assets/icons/地理长卷.png" alt="地理长卷"></div>
+                    <div class="hall-name">地理长卷</div>
+                    <div class="hall-desc">云岭大地<br>建筑分布全景</div>
+                </div>
+
+                <div class="hall-card" onclick="navigateTo('hall-types.html')">
+                    <div class="hall-num">03</div>
+                    <div class="hall-icon"><img src="assets/icons/建筑万象.png" alt="建筑万象"></div>
+                    <div class="hall-name">建筑万象</div>
+                    <div class="hall-desc">桥梁民居衙署<br>类型丰富多彩</div>
+                </div>
+
+                <div class="hall-card" onclick="navigateTo('hall-ethnic.html')">
+                    <div class="hall-num">04</div>
+                    <div class="hall-icon"><img src="assets/icons/民族交融.png" alt="民族交融"></div>
+                    <div class="hall-name">民族交融</div>
+                    <div class="hall-desc">十五个民族<br>建筑文化融合</div>
+                </div>
+
+                <div class="hall-card" onclick="navigateTo('hall-tech.html')">
+                    <div class="hall-num">05</div>
+                    <div class="hall-icon"><img src="assets/icons/匠心传承.png" alt="匠心传承"></div>
+                    <div class="hall-name">匠心传承</div>
+                    <div class="hall-desc">建筑技术<br>云南智慧结晶</div>
+                </div>
+
+                <div class="hall-card" onclick="navigateTo('hall-protection.html')">
+                    <div class="hall-num">06</div>
+                    <div class="hall-icon"><img src="assets/icons/守护重生.png" alt="守护重生"></div>
+                    <div class="hall-name">守护重生</div>
+                    <div class="hall-desc">文物保护<br>重建历史记录</div>
+                </div>
+
+                <div class="hall-card" onclick="navigateTo('hall-insights.html')">
+                    <div class="hall-num">07</div>
+                    <div class="hall-icon"><img src="assets/icons/数据洞察.png" alt="回望·尾声"></div>
+                    <div class="hall-name">回望·尾声</div>
+                    <div class="hall-desc">旅程回顾<br>尾声与邀请</div>
+                </div>
+
+                <div class="hall-card" onclick="navigateTo('hall-gallery.html')">
+                    <div class="hall-num">08</div>
+                    <div class="hall-icon"><img src="assets/icons/建筑图鉴.png" alt="建筑图鉴"></div>
+                    <div class="hall-name">建筑图鉴</div>
+                    <div class="hall-desc"><span id="totalBuildings2">-</span>座建筑<br>全景浏览</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 页脚 -->
+        <footer style="text-align: center; padding: 40px; border-top: 1px solid var(--border-dim);">
+            <p class="text-dim" style="font-size: 12px; letter-spacing: 2px;">
+                滇风·民族筑语
+            </p>
+        </footer>
+    </main>
+
+    <script src="js/data.js"></script>
+    <script>
+        // iframe内导航函数 - 通过postMessage保持音乐播放
+        function navigateTo(url) {
+            if (window.parent && window.parent !== window) {
+                // 在iframe中，发送消息给父页面
+                window.parent.postMessage({ type: 'navigate', url: url }, '*');
+            } else {
+                // 不在iframe中，直接跳转
+                window.location.href = url;
+            }
+        }
+
+        // 动态设置建筑数量
+        document.addEventListener('DOMContentLoaded', function() {
+            const count = BUILDINGS ? BUILDINGS.length : 63;
+            document.getElementById('totalBuildings').textContent = count;
+            document.getElementById('totalBuildings2').textContent = count;
+        });
+    </script>
+</body>
+</html>

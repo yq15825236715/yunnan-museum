@@ -1,0 +1,2275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>守护重生 - 滇风·民族筑语</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/echarts.min.js"></script>
+    <style>
+        /* 概览统计 */
+        .overview-section {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        .overview-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 8px;
+            padding: 30px 25px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .overview-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-3px);
+        }
+
+        .overview-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .overview-value {
+            font-size: 36px;
+            color: var(--gold);
+            font-weight: 200;
+            margin-bottom: 8px;
+        }
+
+        .overview-label {
+            font-size: 13px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+        }
+
+        /* 保护级别分类 */
+        .protection-level-section {
+            margin-bottom: 50px;
+        }
+
+        .level-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .level-tab {
+            padding: 12px 30px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 6px;
+            color: var(--text-dim);
+            font-size: 14px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .level-tab:hover {
+            border-color: var(--gold);
+            color: var(--text-light);
+        }
+
+        .level-tab.active {
+            background: rgba(200, 164, 92, 0.15);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .level-tab .count {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 2px 8px;
+            background: rgba(200, 164, 92, 0.2);
+            border-radius: 10px;
+            font-size: 12px;
+        }
+
+        /* 建筑卡片滑动区域 */
+        .building-carousel-section {
+            position: relative;
+            margin-bottom: 50px;
+        }
+
+        .carousel-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .carousel-nav {
+            display: flex;
+            gap: 15px;
+        }
+
+        .carousel-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            color: var(--text-dim);
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .carousel-btn:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .carousel-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .carousel-counter {
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        .carousel-counter span {
+            color: var(--gold);
+        }
+
+        .building-carousel-container {
+            overflow: hidden;
+            position: relative;
+        }
+
+        .building-carousel {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+
+        .building-card {
+            flex: 0 0 calc(33.333% - 20px);
+            margin-right: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 8px;
+            padding: 25px;
+            transition: all 0.3s;
+            cursor: pointer;
+            min-width: calc(33.333% - 20px);
+        }
+
+        .building-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-2px);
+        }
+
+        .building-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .building-card-name {
+            font-size: 16px;
+            color: var(--text-light);
+            letter-spacing: 1px;
+        }
+
+        .building-card-badge {
+            padding: 4px 10px;
+            background: rgba(200, 164, 92, 0.15);
+            border-radius: 4px;
+            font-size: 11px;
+            color: var(--gold);
+        }
+
+        .building-card-badge.national {
+            background: rgba(192, 57, 43, 0.2);
+            color: #e74c3c;
+        }
+
+        .building-card-badge.provincial {
+            background: rgba(200, 164, 92, 0.2);
+            color: var(--gold);
+        }
+
+        .building-card-badge.local {
+            background: rgba(93, 122, 110, 0.2);
+            color: #5d7a6e;
+        }
+
+        .building-card-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .building-card-info-item {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .building-card-info-item span {
+            color: var(--text-light);
+        }
+
+        .building-card-desc {
+            font-size: 12px;
+            color: var(--text-dim);
+            line-height: 1.7;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        @media (max-width: 1200px) {
+            .building-card {
+                flex: 0 0 calc(50% - 20px);
+                min-width: calc(50% - 20px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .building-card {
+                flex: 0 0 calc(100% - 20px);
+                min-width: calc(100% - 20px);
+            }
+        }
+
+        /* 图表区 */
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 8px;
+            padding: 25px;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            color: var(--text-light);
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-dim);
+        }
+
+        /* 重建历程 */
+        .rebuild-section {
+            margin-bottom: 50px;
+        }
+
+        .rebuild-timeline {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 8px;
+            padding: 30px;
+        }
+
+        .rebuild-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .rebuild-title {
+            font-size: 18px;
+            color: var(--gold);
+            letter-spacing: 2px;
+        }
+
+        .rebuild-subtitle {
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        /* 时间轴容器 */
+        .timeline-container {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        /* 时间轴可视化区域 */
+        .timeline-visual {
+            position: relative;
+            padding: 0 20px;
+        }
+
+        /* 时间轴主体 */
+        .timeline-axis {
+            position: relative;
+            width: 100%;
+            height: 120px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* 时间轴主线（横线） */
+        .timeline-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 4px;
+            background: linear-gradient(90deg, rgba(200, 164, 92, 0.3), var(--gold), rgba(200, 164, 92, 0.3));
+            transform: translateY(-50%);
+            border-radius: 2px;
+        }
+
+        /* 时间轴刻度容器 */
+        .timeline-point {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            text-align: center;
+            z-index: 10;
+        }
+
+        /* 刻度线 - 竖线穿过时间轴 */
+        .timeline-tick {
+            width: 3px;
+            height: 50px;
+            margin: 0 auto;
+            transition: all 0.3s;
+            position: relative;
+            border-radius: 2px;
+        }
+
+        .timeline-point:hover .timeline-tick {
+            height: 60px;
+            box-shadow: 0 0 15px currentColor;
+        }
+
+        /* 刻度线颜色 - 更明显的颜色 */
+        .timeline-tick.start {
+            background: linear-gradient(to bottom, #2ecc71, #27ae60, #2ecc71);
+            box-shadow: 0 0 8px rgba(46, 204, 113, 0.5);
+        }
+
+        .timeline-tick.rebuild {
+            background: linear-gradient(to bottom, #5dade2, #3498db, #5dade2);
+            box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
+        }
+
+        .timeline-tick.current {
+            background: linear-gradient(to bottom, #ec7063, #e74c3c, #ec7063);
+            box-shadow: 0 0 8px rgba(231, 76, 60, 0.5);
+        }
+
+        /* 标签容器 */
+        .timeline-label-wrapper {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            width: 100px;
+            white-space: nowrap;
+        }
+
+        /* 标签在上方 */
+        .timeline-label-wrapper.above {
+            bottom: 55px;
+        }
+
+        /* 标签在下方 */
+        .timeline-label-wrapper.below {
+            top: 55px;
+        }
+
+        /* 默认在上方 */
+        .timeline-label-wrapper.default {
+            bottom: 55px;
+        }
+
+        .timeline-year {
+            font-size: 15px;
+            color: var(--gold);
+            font-weight: 600;
+            margin-bottom: 3px;
+            text-shadow: 0 0 10px rgba(200, 164, 92, 0.3);
+        }
+
+        .timeline-label {
+            font-size: 12px;
+            color: var(--text-light);
+            white-space: nowrap;
+            background: rgba(200, 164, 92, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* 刻度类型标记 - 顶部小圆点 */
+        .timeline-tick.start::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background: #2ecc71;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 10px rgba(46, 204, 113, 0.8);
+        }
+
+        .timeline-tick.rebuild::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 8px;
+            background: #3498db;
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+
+        .timeline-tick.current::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background: #e74c3c;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.8);
+        }
+
+        /* 建筑详情弹窗 */
+        .building-detail-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 9, 8, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .building-detail-modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-dim);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            color: var(--gold);
+            letter-spacing: 3px;
+        }
+
+        .modal-close {
+            font-size: 28px;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .modal-close:hover {
+            color: var(--gold);
+        }
+
+        .modal-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .modal-section h4 {
+            font-size: 14px;
+            color: var(--gold);
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+        }
+
+        .modal-section p {
+            font-size: 13px;
+            color: var(--text-dim);
+            line-height: 1.8;
+        }
+
+        .modal-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .modal-info-item {
+            padding: 12px;
+            background: rgba(200, 164, 92, 0.05);
+            border-radius: 6px;
+        }
+
+        .modal-info-label {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+        }
+
+        .modal-info-value {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        /* 重建统计 */
+        .rebuild-stats {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .rebuild-stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .rebuild-stat-card:hover {
+            border-color: var(--gold);
+        }
+
+        .rebuild-num {
+            font-size: 28px;
+            color: var(--gold);
+            font-weight: 200;
+        }
+
+        .rebuild-label {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 5px;
+        }
+
+        /* 建筑选择区 */
+        .building-selector-section {
+            margin-bottom: 40px;
+        }
+
+        .building-selector-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .building-selector-title {
+            font-size: 18px;
+            color: var(--gold);
+            letter-spacing: 3px;
+        }
+
+        .building-selector-desc {
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        .building-selector {
+            width: 100%;
+            padding: 15px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-size: 14px;
+            font-family: var(--font-serif);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .building-selector:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .building-selector option {
+            background: var(--bg-darkest);
+            padding: 10px;
+        }
+
+        /* 时间轴区域 */
+        .lifespan-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 8px;
+            padding: 30px;
+            min-height: 400px;
+        }
+
+        .lifespan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-dim);
+        }
+
+        .lifespan-title {
+            font-size: 24px;
+            color: var(--gold);
+            letter-spacing: 3px;
+        }
+
+        .lifespan-meta {
+            text-align: right;
+        }
+
+        .lifespan-meta-item {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-bottom: 5px;
+        }
+
+        .lifespan-meta-value {
+            color: var(--text-light);
+        }
+
+        .placeholder-message {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            color: var(--text-dim);
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+
+        .building-detail-card {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-dim);
+        }
+
+        .detail-section h4 {
+            font-size: 14px;
+            color: var(--gold);
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+        }
+
+        .detail-section p {
+            font-size: 13px;
+            color: var(--text-dim);
+            line-height: 1.8;
+        }
+
+        @media (max-width: 1200px) {
+            .building-list { grid-template-columns: repeat(2, 1fr); }
+            .rebuild-stats { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .overview-section { grid-template-columns: repeat(2, 1fr); }
+            .charts-section { grid-template-columns: 1fr; }
+            .building-list { grid-template-columns: 1fr; }
+            .level-tabs { flex-wrap: wrap; }
+            .modal-body { grid-template-columns: 1fr; }
+            .rebuild-stats { grid-template-columns: repeat(2, 1fr); }
+            .building-detail-card { grid-template-columns: 1fr; }
+        }
+
+        /* 展厅导航按钮 */
+        .hall-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 40px 0;
+            border-top: 1px solid var(--border-dim);
+            margin-top: 40px;
+        }
+
+        .hall-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 30px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 14px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .hall-nav-btn:hover {
+            border-color: var(--gold);
+            background: rgba(200, 164, 92, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .hall-nav-btn.primary {
+            background: linear-gradient(135deg, var(--gold), var(--vermillion));
+            border-color: var(--gold);
+            color: #fff;
+        }
+
+        .hall-nav-btn.primary:hover {
+            box-shadow: 0 8px 25px rgba(200, 164, 92, 0.3);
+        }
+
+        .hall-nav-arrow {
+            font-size: 18px;
+        }
+
+        /* 双时间轴对比样式 */
+        .timeline-comparison-section {
+            margin-bottom: 50px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 12px;
+            padding: 30px;
+        }
+
+        .dual-timeline-container {
+            margin-top: 30px;
+        }
+
+        .timeline-row {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .timeline-row-label {
+            width: 120px;
+            flex-shrink: 0;
+            text-align: right;
+            padding-right: 20px;
+            border-right: 2px solid var(--border-dim);
+        }
+
+        .timeline-label-main {
+            display: block;
+            font-size: 16px;
+            color: var(--gold);
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        .timeline-label-sub {
+            display: block;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .timeline-chart-wrapper {
+            flex: 1;
+            background: rgba(200, 164, 92, 0.03);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .timeline-connector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 0;
+            margin-left: 140px;
+        }
+
+        .connector-line {
+            width: 2px;
+            height: 20px;
+            background: linear-gradient(to bottom, var(--gold), rgba(200, 164, 92, 0.3));
+        }
+
+        .connector-icon {
+            width: 30px;
+            height: 30px;
+            background: var(--bg-darkest);
+            border: 2px solid var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gold);
+            font-size: 14px;
+            margin: 0 5px;
+        }
+
+        .timeline-legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-dim);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-line {
+            width: 24px;
+            height: 2px;
+            border-radius: 1px;
+        }
+
+        .scatter-chart-container {
+            margin-top: 20px;
+            background: rgba(200, 164, 92, 0.02);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .timeline-insight {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-top: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(200, 164, 92, 0.08), rgba(93, 122, 110, 0.05));
+            border-radius: 8px;
+            border-left: 3px solid var(--gold);
+        }
+
+        .insight-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .insight-content {
+            font-size: 13px;
+            color: var(--text-light);
+            line-height: 1.8;
+        }
+
+        .insight-content strong {
+            color: var(--gold);
+        }
+
+        @media (max-width: 768px) {
+            .timeline-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .timeline-row-label {
+                width: 100%;
+                text-align: left;
+                border-right: none;
+                border-bottom: 2px solid var(--border-dim);
+                padding-right: 0;
+                padding-bottom: 10px;
+                margin-bottom: 10px;
+            }
+            .timeline-connector {
+                margin-left: 0;
+            }
+            .timeline-legend {
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-logo" onclick="navigateTo('home.html')">
+            <div class="nav-logo-icon"><img src="assets/icons/icon.png" alt="滇"></div>
+            <span class="nav-logo-text">滇风·民族筑语</span>
+        </div>
+        <div class="nav-links">
+            <a href="javascript:void(0)" class="nav-link" onclick="navigateTo('home.html')">首页</a>
+            <a href="javascript:void(0)" class="nav-link" onclick="navigateTo('hall-timeline.html')">时光长廊</a>
+            <a href="javascript:void(0)" class="nav-link" onclick="navigateTo('hall-map.html')">地理长卷</a>
+            <div class="nav-dropdown">
+                <span class="nav-link">更多展厅 ▾</span>
+                <div class="nav-dropdown-menu">
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-types.html')">建筑万象</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-ethnic.html')">民族交融</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-tech.html')">匠心传承</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-protection.html')">守护重生</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-insights.html')">回望·尾声</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-gallery.html')">建筑图鉴</a>
+                </div>
+            </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">展厅六</div>
+                <h1 class="section-title">守 护 重 生</h1>
+                <p class="section-subtitle">文物保护 · 传承历史记忆</p>
+            </div>
+
+            <!-- 概览统计 -->
+            <div class="overview-section" id="overviewSection"></div>
+
+            <!-- 图表区 -->
+            <div class="charts-section">
+                <div class="chart-card">
+                    <div class="chart-title">保护级别分布</div>
+                    <div id="protectionPieChart" style="height: 300px;"></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">存世时间分布（按保护级别）</div>
+                    <div id="lifespanChart" style="height: 300px;"></div>
+                </div>
+            </div>
+
+            <!-- 保护级别与民族关联分析 -->
+            <div class="chart-card" style="margin-bottom: 50px;">
+                <div class="chart-title">保护级别 × 民族分布热力图</div>
+                <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 15px;">展示各民族参与建筑在不同保护级别的分布情况，颜色越深表示数量越多</p>
+                <div id="ethnicProtectionHeatmap" style="height: 450px;"></div>
+            </div>
+
+            <!-- 保护级别分类 -->
+            <div class="protection-level-section">
+                <div class="section-header" style="padding: 20px 0;">
+                    <div class="section-badge">保护名录</div>
+                    <h2 class="section-title" style="font-size: 24px;">各级文物保护单位</h2>
+                </div>
+                
+                <div class="level-tabs" id="levelTabs"></div>
+                
+                <div class="building-carousel-section">
+                    <div class="carousel-controls">
+                        <div class="carousel-counter">
+                            第 <span id="currentPage">1</span> / <span id="totalPages">1</span> 页
+                        </div>
+                        <div class="carousel-nav">
+                            <button class="carousel-btn" id="prevBtn" onclick="prevSlide()">◀</button>
+                            <button class="carousel-btn" id="nextBtn" onclick="nextSlide()">▶</button>
+                        </div>
+                    </div>
+                    <div class="building-carousel-container">
+                        <div class="building-carousel" id="buildingCarousel"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 始建与现存年代对比 -->
+            <div class="timeline-comparison-section">
+                <div class="section-header" style="padding: 20px 0;">
+                    <div class="section-badge">年代对比</div>
+                    <h2 class="section-title" style="font-size: 24px;">始建与现存年代对比图</h2>
+                    <p class="section-subtitle">X轴为始建年份，Y轴为现存年份，对角线表示原构保存，偏离对角线表示经历重建</p>
+                </div>
+                
+                <div class="scatter-chart-container">
+                    <div id="yearComparisonChart" style="height: 450px;"></div>
+                </div>
+                
+                <div class="timeline-legend">
+                    <div class="legend-item">
+                        <span class="legend-dot" style="background: #c8a45c;"></span>
+                        <span>原构保存（差异≤50年）</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot" style="background: #e74c3c;"></span>
+                        <span>经历重建（差异>50年）</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-line" style="background: rgba(200,164,92,0.5);"></span>
+                        <span>对角线（始建=现存）</span>
+                    </div>
+                </div>
+                
+                <div class="timeline-insight">
+                    <div class="insight-icon">💡</div>
+                    <div class="insight-content">
+                        <strong>数据洞察：</strong>
+                        <span id="timelineInsightText">正在分析数据...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 重建历程 -->
+            <div class="rebuild-section">
+                <div class="section-header" style="padding: 20px 0;">
+                    <div class="section-badge">重建历程</div>
+                    <h2 class="section-title" style="font-size: 24px;">建筑重生时间轴</h2>
+                    <p class="section-subtitle">选择建筑，查看其"重生"历程</p>
+                </div>
+
+                <!-- 重建统计 -->
+                <div class="rebuild-stats" id="rebuildStats"></div>
+
+                <!-- 建筑选择器 -->
+                <div class="building-selector-section">
+                    <div class="building-selector-header">
+                        <div class="building-selector-title">选择建筑</div>
+                        <div class="building-selector-desc">查看该建筑的始建、重建与现存历程</div>
+                    </div>
+                    <select class="building-selector" id="buildingSelector">
+                        <option value="">-- 请选择建筑 --</option>
+                    </select>
+                </div>
+
+                <!-- 时间轴区域 -->
+                <div class="lifespan-section" id="lifespanSection">
+                    <div class="placeholder-message">
+                        请选择一座建筑，查看其重建时间轴
+                    </div>
+                </div>
+            </div>
+
+            <!-- 展厅导航 -->
+            <div class="hall-nav">
+                <a href="javascript:void(0)" class="hall-nav-btn" onclick="navigateTo('hall-tech.html')">
+                    <span class="hall-nav-arrow">←</span>
+                    <span>上一展厅：匠心传承</span>
+                </a>
+                <a href="javascript:void(0)" class="hall-nav-btn primary" onclick="navigateTo('hall-insights.html')">
+                    <span>进入尾声：回望</span>
+                    <span class="hall-nav-arrow">→</span>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- 建筑详情弹窗 -->
+    <div class="building-detail-modal" id="buildingModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle"></div>
+                <div class="modal-close" onclick="closeModal()">×</div>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script>
+        // iframe内导航函数 - 通过postMessage保持音乐播放
+        function navigateTo(url) {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'navigate', url: url }, '*');
+            } else {
+                window.location.href = url;
+            }
+        }
+
+        const buildings = BUILDINGS || [];
+        let currentLevel = 'all';
+        let currentSlide = 0;
+        let filteredBuildings = [];
+        const cardsPerSlide = 3;
+
+        // 轮播功能
+        function updateCarousel() {
+            const carousel = document.getElementById('buildingCarousel');
+            const totalPages = Math.ceil(filteredBuildings.length / cardsPerSlide);
+            
+            document.getElementById('currentPage').textContent = currentSlide + 1;
+            document.getElementById('totalPages').textContent = totalPages || 1;
+            
+            // 更新按钮状态
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide >= totalPages - 1;
+            
+            // 渲染当前页卡片
+            const start = currentSlide * cardsPerSlide;
+            const end = start + cardsPerSlide;
+            const currentCards = filteredBuildings.slice(start, end);
+            
+            carousel.innerHTML = currentCards.map(b => {
+                const cat = categorizeProtectionLevel(b.protection_level);
+                const badgeClass = cat === '全国重点文物保护单位' ? 'national' : 
+                                   cat === '省级文物保护单位' ? 'provincial' : 'local';
+                
+                return `
+                    <div class="building-card" data-id="${b.id}">
+                        <div class="building-card-header">
+                            <div class="building-card-name">${b.name}</div>
+                            <div class="building-card-badge ${badgeClass}">${cat.replace('文物保护单位', '')}</div>
+                        </div>
+                        <div class="building-card-info">
+                            <div class="building-card-info-item">年代: <span>${b.dynasty || '待考'}</span></div>
+                            <div class="building-card-info-item">地区: <span>${b.region || ''}</span></div>
+                        </div>
+                        <div class="building-card-desc">${b.description ? b.description.substring(0, 80) + '...' : '暂无描述'}</div>
+                    </div>
+                `;
+            }).join('');
+
+            // 绑定点击事件
+            carousel.querySelectorAll('.building-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    showBuildingDetail(this.dataset.id);
+                });
+            });
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateCarousel();
+            }
+        }
+
+        function nextSlide() {
+            const totalPages = Math.ceil(filteredBuildings.length / cardsPerSlide);
+            if (currentSlide < totalPages - 1) {
+                currentSlide++;
+                updateCarousel();
+            }
+        }
+
+        // 分类保护级别
+        function categorizeProtectionLevel(level) {
+            if (!level) return '未定级';
+            if (level.includes('全国重点')) return '全国重点文物保护单位';
+            if (level.includes('省级') || level.includes('省')) return '省级文物保护单位';
+            if (level.includes('市') || level.includes('县') || level.includes('区')) return '市县级文物保护单位';
+            return '其他';
+        }
+
+        // 统计数据
+        function getStats() {
+            const total = buildings.length;
+            let national = 0, provincial = 0, local = 0;
+            
+            buildings.forEach(b => {
+                const cat = categorizeProtectionLevel(b.protection_level);
+                if (cat === '全国重点文物保护单位') national++;
+                else if (cat === '省级文物保护单位') provincial++;
+                else if (cat === '市县级文物保护单位') local++;
+            });
+
+            // 统计年代
+            let mingqing = 0, qing = 0, republic = 0;
+            buildings.forEach(b => {
+                const dynasty = b.dynasty || '';
+                if (dynasty.includes('明')) mingqing++;
+                if (dynasty.includes('清')) qing++;
+                if (dynasty.includes('民国') || dynasty.includes('现代')) republic++;
+            });
+
+            return { total, national, provincial, local, mingqing, qing, republic };
+        }
+
+        // 渲染概览统计
+        function renderOverview() {
+            const stats = getStats();
+            const container = document.getElementById('overviewSection');
+            
+            container.innerHTML = `
+                <div class="overview-card">
+                    <div class="overview-value">${stats.total}</div>
+                    <div class="overview-label">建筑总数</div>
+                </div>
+                <div class="overview-card">
+                    <div class="overview-value">${stats.national}</div>
+                    <div class="overview-label">全国重点文保</div>
+                </div>
+                <div class="overview-card">
+                    <div class="overview-value">${stats.provincial}</div>
+                    <div class="overview-label">省级文保</div>
+                </div>
+                <div class="overview-card">
+                    <div class="overview-value">${stats.local}</div>
+                    <div class="overview-label">市县级文保</div>
+                </div>
+            `;
+        }
+
+        // 渲染级别标签
+        function renderLevelTabs() {
+            const stats = getStats();
+            const container = document.getElementById('levelTabs');
+            
+            const tabs = [
+                { key: 'all', name: '全部', count: stats.total },
+                { key: '全国重点文物保护单位', name: '全国重点', count: stats.national },
+                { key: '省级文物保护单位', name: '省级', count: stats.provincial },
+                { key: '市县级文物保护单位', name: '市县级', count: stats.local }
+            ];
+
+            container.innerHTML = tabs.map(tab => `
+                <div class="level-tab ${currentLevel === tab.key ? 'active' : ''}" data-level="${tab.key}">
+                    ${tab.name}<span class="count">${tab.count}</span>
+                </div>
+            `).join('');
+
+            container.querySelectorAll('.level-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    currentLevel = this.dataset.level;
+                    container.querySelectorAll('.level-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    renderBuildingList();
+                });
+            });
+        }
+
+        // 渲染建筑列表（使用轮播）
+        function renderBuildingList() {
+            // 筛选建筑
+            if (currentLevel !== 'all') {
+                filteredBuildings = buildings.filter(b => categorizeProtectionLevel(b.protection_level) === currentLevel);
+            } else {
+                filteredBuildings = [...buildings];
+            }
+            
+            // 重置到第一页
+            currentSlide = 0;
+            updateCarousel();
+        }
+
+        // 显示建筑详情
+        function showBuildingDetail(id) {
+            const building = buildings.find(b => b.id == id);
+            if (!building) return;
+
+            document.getElementById('modalTitle').textContent = building.name;
+            document.getElementById('modalBody').innerHTML = `
+                <div class="modal-section">
+                    <h4>基本信息</h4>
+                    <div class="modal-info-grid">
+                        <div class="modal-info-item">
+                            <div class="modal-info-label">保护级别</div>
+                            <div class="modal-info-value">${building.protection_level || '未定级'}</div>
+                        </div>
+                        <div class="modal-info-item">
+                            <div class="modal-info-label">建筑年代</div>
+                            <div class="modal-info-value">${building.dynasty || '待考'}</div>
+                        </div>
+                        <div class="modal-info-item">
+                            <div class="modal-info-label">建筑类型</div>
+                            <div class="modal-info-value">${building.type || '未知'}</div>
+                        </div>
+                        <div class="modal-info-item">
+                            <div class="modal-info-label">所在地区</div>
+                            <div class="modal-info-value">${building.region || ''} ${building.district || ''}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-section">
+                    <h4>建筑描述</h4>
+                    <p>${building.description || '暂无描述'}</p>
+                </div>
+                <div class="modal-section">
+                    <h4>保护状况</h4>
+                    <p>${building.protection_level ? 
+                        `该建筑已被列入${building.protection_level}名单，受到国家法律法规保护。` : 
+                        '该建筑保护级别待确认。'}
+                        ${building.rebuild_count > 0 ? `历史上共经历${building.rebuild_count}次重建。` : '建筑保存状况良好。'}
+                    </p>
+                </div>
+                <div class="modal-section">
+                    <h4>详细地址</h4>
+                    <p>${building.address || '暂无地址信息'}</p>
+                </div>
+            `;
+
+            document.getElementById('buildingModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('buildingModal').classList.remove('active');
+        }
+
+        // 渲染重建时间轴（已移除，功能整合到建筑选择器）
+        function renderRebuildTimeline() {
+            // 该函数保留但不再执行，因为 HTML 中已移除 rebuildTimeline 元素
+            return;
+            
+            // 找出重建次数最多的建筑
+            const sorted = [...buildings].filter(b => b.rebuild_count > 0).sort((a, b) => b.rebuild_count - a.rebuild_count);
+            const topBuildings = sorted.slice(0, 5);
+
+            if (topBuildings.length === 0) {
+                return;
+            }
+
+            container.innerHTML = topBuildings.map(b => {
+                const yearBuilt = b.year_built || 1500;
+                const rebuildCount = b.rebuild_count || 0;
+                const rebuildInfo = b.rebuild_info || {};
+                
+                // 收集所有关键年份
+                const years = [{ year: yearBuilt, label: '始建', type: 'start' }];
+                
+                if (rebuildInfo['第1次重建']) {
+                    const y = parseInt(rebuildInfo['第1次重建']);
+                    if (!isNaN(y)) years.push({ year: y, label: '重建', type: 'rebuild' });
+                }
+                if (rebuildInfo['第2次重建']) {
+                    const y = parseInt(rebuildInfo['第2次重建']);
+                    if (!isNaN(y)) years.push({ year: y, label: '重建', type: 'rebuild' });
+                }
+                if (rebuildInfo['第3次重建']) {
+                    const y = parseInt(rebuildInfo['第3次重建']);
+                    if (!isNaN(y)) years.push({ year: y, label: '重建', type: 'rebuild' });
+                }
+                
+                years.push({ year: 2026, label: '现存', type: 'current' });
+
+                const minYear = Math.min(...years.map(y => y.year)) - 50;
+                const maxYear = 2026 + 20;
+                const range = maxYear - minYear;
+
+                return `
+                    <div style="margin-bottom:40px;">
+                        <div style="display:flex;justify-content:space-between;margin-bottom:15px;">
+                            <div style="font-size:16px;color:var(--gold);letter-spacing:1px;">${b.name}</div>
+                            <div style="font-size:12px;color:var(--text-dim);">重建${rebuildCount}次</div>
+                        </div>
+                        <div class="timeline-axis">
+                            <div class="timeline-line"></div>
+                            ${years.map(y => {
+                                const pos = ((y.year - minYear) / range) * 100;
+                                return `
+                                    <div class="timeline-point" style="left:${pos}%;">
+                                        <div class="timeline-tick ${y.type}"></div>
+                                        <div class="timeline-label-wrapper default">
+                                            <div class="timeline-year">${y.year}</div>
+                                            <div class="timeline-label">${y.label}</div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 保护级别半圆环图
+        function initProtectionPieChart() {
+            const chart = echarts.init(document.getElementById('protectionPieChart'));
+            const stats = getStats();
+            
+            const data = [
+                { name: '全国重点文物保护单位', value: stats.national },
+                { name: '省级文物保护单位', value: stats.provincial },
+                { name: '市县级文物保护单位', value: stats.local }
+            ];
+
+            chart.setOption({
+                backgroundColor: 'transparent',
+                tooltip: { 
+                    trigger: 'item', 
+                    formatter: '{b}<br/>{c}座 ({d}%)' 
+                },
+                legend: {
+                    orient: 'horizontal',
+                    bottom: 20,
+                    textStyle: { color: '#9a958a', fontSize: 12 },
+                    itemWidth: 15,
+                    itemHeight: 10
+                },
+                color: ['#e74c3c', '#c8a45c', '#5d7a6e'],
+                series: [{
+                    type: 'pie',
+                    radius: ['45%', '70%'],
+                    center: ['50%', '45%'],
+                    startAngle: 180,
+                    endAngle: 360,
+                    data: data,
+                    label: {
+                        show: true,
+                        position: 'center',
+                        formatter: function() {
+                            return '{total|' + stats.total + '}\n{label|建筑总数}';
+                        },
+                        rich: {
+                            total: {
+                                fontSize: 36,
+                                color: '#c8a45c',
+                                fontWeight: '200',
+                                align: 'center'
+                            },
+                            label: {
+                                fontSize: 12,
+                                color: '#9a958a',
+                                padding: [5, 0, 0, 0],
+                                align: 'center'
+                            }
+                        }
+                    },
+                    itemStyle: {
+                        borderRadius: [8, 8, 0, 0],
+                        borderColor: '#0a0908',
+                        borderWidth: 2
+                    },
+                    emphasis: {
+                        label: { show: true }
+                    }
+                }]
+            });
+            
+            return chart;
+        }
+
+        // 年代分布柱状图
+        function initDynastyBarChart() {
+            const chart = echarts.init(document.getElementById('dynastyBarChart'));
+            
+            const dynastyCount = {};
+            buildings.forEach(b => {
+                let dynasty = b.dynasty || '待考';
+                // 简化年代分类
+                if (dynasty.includes('明') && dynasty.includes('清')) dynasty = '明清';
+                else if (dynasty.includes('明')) dynasty = '明代';
+                else if (dynasty.includes('清')) dynasty = '清代';
+                else if (dynasty.includes('民国')) dynasty = '民国';
+                else if (dynasty === 'nan') dynasty = '待考';
+                
+                dynastyCount[dynasty] = (dynastyCount[dynasty] || 0) + 1;
+            });
+
+            const sorted = Object.entries(dynastyCount).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+            chart.setOption({
+                backgroundColor: 'transparent',
+                tooltip: { trigger: 'axis', formatter: '{b}: {c}座' },
+                grid: { left: 60, right: 20, top: 20, bottom: 60 },
+                xAxis: {
+                    type: 'category',
+                    data: sorted.map(d => d[0]),
+                    axisLine: { lineStyle: { color: 'rgba(200, 164, 92, 0.3)' } },
+                    axisLabel: { color: '#9a958a', fontSize: 11, rotate: 30 }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLine: { show: false },
+                    splitLine: { lineStyle: { color: 'rgba(200, 164, 92, 0.1)' } },
+                    axisLabel: { color: '#9a958a' }
+                },
+                series: [{
+                    type: 'bar',
+                    data: sorted.map(d => d[1]),
+                    barWidth: '50%',
+                    itemStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0, y: 0, x2: 0, y2: 1,
+                            colorStops: [
+                                { offset: 0, color: '#c8a45c' },
+                                { offset: 1, color: 'rgba(200, 164, 92, 0.3)' }
+                            ]
+                        },
+                        borderRadius: [4, 4, 0, 0]
+                    }
+                }]
+            });
+            
+            return chart;
+        }
+
+        // 渲染重建统计
+        function renderRebuildStats() {
+            const stats = { 0: 0, 1: 0, 2: 0, 3: 0, '4+': 0 };
+            
+            buildings.forEach(b => {
+                const count = b.rebuild_count || b.reconstruction_count || 0;
+                if (count >= 4) stats['4+']++;
+                else stats[count]++;
+            });
+            
+            const container = document.getElementById('rebuildStats');
+            container.innerHTML = Object.entries(stats).map(([num, count]) => `
+                <div class="rebuild-stat-card">
+                    <div class="rebuild-num">${count}</div>
+                    <div class="rebuild-label">重建${num}次</div>
+                </div>
+            `).join('');
+        }
+
+        // 渲染建筑选择器
+        function renderBuildingSelector() {
+            const selector = document.getElementById('buildingSelector');
+            
+            // 按重建次数排序
+            const sorted = [...buildings].sort((a, b) => {
+                const ra = a.rebuild_count || a.reconstruction_count || 0;
+                const rb = b.rebuild_count || b.reconstruction_count || 0;
+                return rb - ra;
+            });
+            
+            selector.innerHTML = '<option value="">-- 请选择建筑 --</option>' +
+                sorted.map(b => {
+                    const rebuildCount = b.rebuild_count || b.reconstruction_count || 0;
+                    const yearBuilt = b.year_built || '?';
+                    const label = `${b.name} (${yearBuilt}年始建，重建${rebuildCount}次)`;
+                    return `<option value="${b.id}">${label}</option>`;
+                }).join('');
+        }
+
+        // 显示建筑时间轴
+        function showBuildingTimeline(buildingId) {
+            const building = buildings.find(b => b.id == buildingId);
+            if (!building) return;
+            
+            const section = document.getElementById('lifespanSection');
+            const yearBuilt = building.year_built || 1800;
+            const yearCurrent = building.year_current || yearBuilt;
+            const rebuildCount = building.rebuild_count || building.reconstruction_count || 0;
+            const totalYears = 2026 - yearBuilt;
+            
+            // 收集已知的重建年份
+            const rebuildInfo = building.rebuild_info || {};
+            const knownRebuilds = []; // 已知的重建记录
+            
+            // 支持最多10次重建记录
+            for (let i = 1; i <= 10; i++) {
+                const key = `第${i}次重建`;
+                if (rebuildInfo[key]) {
+                    const y = parseInt(rebuildInfo[key]);
+                    if (!isNaN(y) && y > 0) {
+                        knownRebuilds.push({ index: i, year: y });
+                    }
+                }
+            }
+            
+            // 按年份排序
+            knownRebuilds.sort((a, b) => a.year - b.year);
+            
+            // 构建时间轴数据（只包含已知年份）
+            const allYearsData = [{ year: yearBuilt, label: '始建', type: 'start' }];
+            
+            knownRebuilds.forEach((r, i) => {
+                allYearsData.push({ year: r.year, label: `第${r.index}次重建`, type: 'rebuild' });
+            });
+            
+            if (yearCurrent && yearCurrent !== yearBuilt) {
+                allYearsData.push({ year: yearCurrent, label: '现存', type: 'current' });
+            }
+            
+            // 去重：如果年份相同，合并标签
+            const uniqueYears = [];
+            allYearsData.forEach(item => {
+                const existing = uniqueYears.find(u => u.year === item.year);
+                if (existing) {
+                    existing.label = existing.label + ' / ' + item.label;
+                } else {
+                    uniqueYears.push({...item});
+                }
+            });
+            
+            const allYears = uniqueYears.map(u => u.year);
+            const minYear = Math.min(...allYears) - 20;
+            const maxYear = Math.max(...allYears, 2026) + 20;
+            const range = maxYear - minYear;
+            
+            // 计算每个点的位置，确保在5%-95%范围内
+            const positions = uniqueYears.map((item, index) => {
+                let pos = ((item.year - minYear) / range) * 100;
+                // 限制在5%-95%范围内，避免超出显示区域
+                pos = Math.max(5, Math.min(95, pos));
+                return {
+                    ...item,
+                    position: pos,
+                    index: index
+                };
+            });
+            
+            // 检测并标记需要错开的点（位置接近时交替上下显示）
+            let lastAboveIndex = -1;
+            positions.forEach((p, i) => {
+                if (i > 0) {
+                    const prevPos = positions[i - 1].position;
+                    // 如果两个点位置接近（小于12%的距离），则错开显示
+                    if (Math.abs(p.position - prevPos) < 12) {
+                        // 如果前一个在上面，当前就放下面；反之亦然
+                        if (positions[i - 1].offset === 'top') {
+                            p.offset = 'bottom';
+                        } else if (positions[i - 1].offset === 'bottom') {
+                            p.offset = 'top';
+                        } else {
+                            // 前一个没有设置，则前一个在上，当前在下
+                            positions[i - 1].offset = 'top';
+                            p.offset = 'bottom';
+                        }
+                    }
+                }
+            });
+            
+            // 计算未知重建次数
+            const unknownRebuildCount = rebuildCount - knownRebuilds.length;
+            
+            section.innerHTML = `
+                <div class="lifespan-header">
+                    <div class="lifespan-title">${building.name}</div>
+                    <div class="lifespan-meta">
+                        <div class="lifespan-meta-item">保护级别：<span class="lifespan-meta-value">${building.protection_level || '未定级'}</span></div>
+                        <div class="lifespan-meta-item">建筑类型：<span class="lifespan-meta-value">${building.type || '未知'}</span></div>
+                        <div class="lifespan-meta-item">存世时间：<span class="lifespan-meta-value">${totalYears}年</span></div>
+                    </div>
+                </div>
+                
+                <div class="timeline-visual">
+                    <div class="timeline-axis">
+                        <!-- 时间轴线 -->
+                        <div class="timeline-line"></div>
+                        <!-- 时间轴刻度 -->
+                        ${positions.map((p, index) => {
+                            let tickClass = p.type;
+                            // 根据offset决定标签位置
+                            let labelWrapperClass = 'default';
+                            
+                            if (p.offset === 'top') {
+                                labelWrapperClass = 'above';
+                            } else if (p.offset === 'bottom') {
+                                labelWrapperClass = 'below';
+                            }
+                            
+                            return `
+                                <div class="timeline-point" style="left: ${p.position}%;">
+                                    <div class="timeline-tick ${tickClass}"></div>
+                                    <div class="timeline-label-wrapper ${labelWrapperClass}">
+                                        <div class="timeline-year">${p.year}</div>
+                                        <div class="timeline-label">${p.label}</div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+                
+                ${unknownRebuildCount > 0 ? `
+                <div style="margin-top: 20px; padding: 15px; background: rgba(200, 164, 92, 0.1); border-radius: 6px; border-left: 3px solid var(--gold);">
+                    <div style="font-size: 13px; color: var(--gold); margin-bottom: 5px;">⚠️ 重建记录说明</div>
+                    <div style="font-size: 12px; color: var(--text-dim);">
+                        该建筑历史上共经历 <strong style="color: var(--gold);">${rebuildCount}次</strong> 重建，
+                        其中 <strong style="color: var(--gold);">${knownRebuilds.length}次</strong> 有明确年份记录，
+                        另有 <strong style="color: #e74c3c;">${unknownRebuildCount}次</strong> 重建时间待考证。
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div class="building-detail-card">
+                    <div class="detail-section">
+                        <h4>历史背景</h4>
+                        <p>${building.description || building.history || building.tech_features || '暂无详细描述'}</p>
+                    </div>
+                    <div class="detail-section">
+                        <h4>保护现状</h4>
+                        <p>${building.protection_level ? `该建筑已被列入${building.protection_level}名单，受到国家法律法规保护。` : '该建筑保护级别待确认。'}
+                        ${rebuildCount > 0 ? `历史上共经历${rebuildCount}次重建，现存建筑主体年代为${yearCurrent}年。` : '建筑保存状况良好，保持了始建时期的主要特征。'}</p>
+                        ${rebuildInfo['重建说明'] ? `<p style="margin-top: 10px;"><strong>重建说明：</strong>${rebuildInfo['重建说明']}</p>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 事件绑定
+        document.getElementById('buildingSelector').addEventListener('change', function(e) {
+            if (e.target.value) {
+                showBuildingTimeline(e.target.value);
+            } else {
+                document.getElementById('lifespanSection').innerHTML = `
+                    <div class="placeholder-message">
+                        请选择一座建筑，查看其重建时间轴
+                    </div>
+                `;
+            }
+        });
+
+        // 存世时间堆叠条形图（横向，Y轴保护级别，X轴时间阶段）
+        function initLifespanChart() {
+            const chart = echarts.init(document.getElementById('lifespanChart'));
+            
+            // 定义百年阶段（X轴）
+            const stages = ['0-100年', '100-200年', '200-300年', '300-400年', '400-500年', '500-600年', '600年以上'];
+            // Y轴保护级别
+            const protectionLevels = ['全国重点文物保护单位', '省级文物保护单位', '市县级文物保护单位'];
+            const levelNames = ['全国重点', '省级', '市县级'];
+            const stageColors = ['#e74c3c', '#f39c12', '#27ae60', '#3498db', '#9b59b6', '#1abc9c', '#34495e'];
+            
+            // 初始化数据结构 - 每个保护级别对应各时间阶段的数量
+            const data = {};
+            protectionLevels.forEach(level => {
+                data[level] = {};
+                stages.forEach(stage => {
+                    data[level][stage] = 0;
+                });
+            });
+            
+            // 统计每个建筑的存世时间
+            buildings.forEach(b => {
+                if (!b.year_built) return;
+                
+                const lifespan = 2026 - b.year_built;
+                const protectionLevel = categorizeProtectionLevel(b.protection_level);
+                
+                if (!protectionLevels.includes(protectionLevel)) return;
+                
+                // 确定存世时间阶段
+                let stage;
+                if (lifespan <= 100) stage = '0-100年';
+                else if (lifespan <= 200) stage = '100-200年';
+                else if (lifespan <= 300) stage = '200-300年';
+                else if (lifespan <= 400) stage = '300-400年';
+                else if (lifespan <= 500) stage = '400-500年';
+                else if (lifespan <= 600) stage = '500-600年';
+                else stage = '600年以上';
+                
+                data[protectionLevel][stage]++;
+            });
+            
+            // 构建系列数据 - 每个时间阶段是一个系列，堆叠在保护级别上
+            const series = stages.map((stage, index) => ({
+                name: stage,
+                type: 'bar',
+                stack: 'total',
+                barWidth: '50%',
+                itemStyle: {
+                    color: stageColors[index],
+                    borderRadius: index === stages.length - 1 ? [0, 4, 4, 0] : [0, 0, 0, 0]
+                },
+                emphasis: {
+                    focus: 'series'
+                },
+                data: levelNames.map(level => data[protectionLevels[levelNames.indexOf(level)]][stage])
+            }));
+            
+            chart.setOption({
+                backgroundColor: 'transparent',
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' },
+                    formatter: function(params) {
+                        let result = params[0].axisValue + '<br/>';
+                        let total = 0;
+                        params.forEach(param => {
+                            if (param.value > 0) {
+                                result += `${param.marker}${param.seriesName}: ${param.value}座<br/>`;
+                                total += param.value;
+                            }
+                        });
+                        result += `<strong style="color:#c8a45c;">合计: ${total}座</strong>`;
+                        return result;
+                    }
+                },
+                legend: {
+                    data: stages,
+                    bottom: 0,
+                    textStyle: { color: '#9a958a', fontSize: 10 },
+                    itemWidth: 12,
+                    itemHeight: 8
+                },
+                grid: {
+                    left: 80,
+                    right: 30,
+                    top: 20,
+                    bottom: 60
+                },
+                xAxis: {
+                    type: 'value',
+                    axisLine: { show: false },
+                    splitLine: { lineStyle: { color: 'rgba(200, 164, 92, 0.1)' } },
+                    axisLabel: { color: '#9a958a' }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: levelNames,
+                    axisLine: { lineStyle: { color: 'rgba(200, 164, 92, 0.3)' } },
+                    axisLabel: { color: '#9a958a', fontSize: 12 }
+                },
+                series: series
+            });
+            
+            return chart;
+        }
+
+        // 始建与现存年代对比气泡图 - 历代绘画大师色彩风格
+        function initDualTimelineCharts() {
+            const chart = echarts.init(document.getElementById('yearComparisonChart'));
+            
+            // 收集所有数据点
+            const allDataPoints = [];
+            
+            buildings.forEach(b => {
+                const yearBuilt = b.year_built;
+                if (!yearBuilt) return;
+                
+                const rebuildInfo = b.rebuild_info || {};
+                let currentYear = null;
+                
+                if (rebuildInfo['现存年代']) {
+                    const currentDesc = rebuildInfo['现存年代'];
+                    const yearMatch = currentDesc.match(/\d{4}/);
+                    if (yearMatch) {
+                        currentYear = parseInt(yearMatch[0]);
+                    }
+                    else if (currentDesc.includes('原构') || currentDesc.includes('始建')) {
+                        currentYear = yearBuilt;
+                    }
+                }
+                
+                if (!currentYear && rebuildInfo) {
+                    const rebuildYears = [];
+                    for (let i = 1; i <= 10; i++) {
+                        const key = `第${i}次重建`;
+                        if (rebuildInfo[key]) {
+                            const y = parseInt(rebuildInfo[key]);
+                            if (!isNaN(y) && y > 0) {
+                                rebuildYears.push(y);
+                            }
+                        }
+                    }
+                    if (rebuildYears.length > 0) {
+                        currentYear = Math.max(...rebuildYears);
+                    }
+                }
+                
+                if (!currentYear) {
+                    currentYear = yearBuilt;
+                }
+                
+                const diff = Math.abs(currentYear - yearBuilt);
+                allDataPoints.push({
+                    name: b.name,
+                    yearBuilt: yearBuilt,
+                    yearCurrent: currentYear,
+                    diff: diff,
+                    protectionLevel: b.protection_level || '未定级'
+                });
+            });
+            
+            // 计算最大差异
+            const maxDiff = Math.max(...allDataPoints.map(d => d.diff), 1);
+            
+            // 统计数据
+            const originalCount = allDataPoints.filter(d => d.diff <= 50).length;
+            const rebuiltCount = allDataPoints.length - originalCount;
+            const totalWithYear = allDataPoints.length;
+            const rebuiltPercent = totalWithYear > 0 ? Math.round(rebuiltCount / totalWithYear * 100) : 0;
+            
+            // 更新洞察文本
+            const insightText = document.getElementById('timelineInsightText');
+            insightText.innerHTML = `在${totalWithYear}座有明确始建年代的建筑中，<strong style="color:#c8a45c;">${originalCount}座（${100-rebuiltPercent}%）</strong>保持了始建时期的主体结构（差异≤50年），<strong style="color:#e74c3c;">${rebuiltCount}座（${rebuiltPercent}%）</strong>经历了明显的重建或修缮。<strong style="color:var(--gold);">气泡大小与颜色深浅均反映年份差异</strong>，差异越大，气泡越大、颜色越深。这反映了云南古建筑"落架重修"的传统，建筑在延续中不断获得新生。`;
+            
+            // 计算坐标轴范围
+            const allYears = buildings.filter(b => b.year_built).map(b => b.year_built);
+            const minYear = Math.min(...allYears) - 50;
+            const maxYear = 2026 + 50;
+            
+            // 构建数据 - 使用visualMap实现颜色渐变
+            const scatterData = allDataPoints.map(d => {
+                // 气泡大小：基础大小 + 差异比例缩放
+                const baseSize = 12;
+                const maxSize = 50;
+                const sizeScale = d.diff / maxDiff;
+                const bubbleSize = baseSize + (maxSize - baseSize) * sizeScale;
+                
+                return {
+                    name: d.name,
+                    value: [d.yearBuilt, d.yearCurrent, d.diff, d.name, d.protectionLevel],
+                    symbolSize: bubbleSize
+                };
+            });
+            
+            // 历代绘画大师风格色彩 - 从淡雅到浓郁的渐变
+            // 参考 ECharts scatter-painter-choice 示例
+            const colorPalette = [
+                '#f5e6d3',  // 米白 - 差异最小
+                '#e8d4b8',  // 淡褐
+                '#d4a574',  // 赭石
+                '#c8a45c',  // 金黄
+                '#b8860b',  // 暗金
+                '#cd853f',  // 秘鲁色
+                '#d2691e',  // 巧克力色
+                '#e74c3c',  // 砖红
+                '#c0392b',  // 深红
+                '#8b0000'   // 暗红 - 差异最大
+            ];
+            
+            const option = {
+                backgroundColor: 'transparent',
+                title: {
+                    text: '始建年份 →',
+                    right: 'center',
+                    bottom: 5,
+                    textStyle: {
+                        color: '#9a958a',
+                        fontSize: 12,
+                        fontWeight: 'normal'
+                    }
+                },
+                tooltip: {
+                    trigger: 'item',
+                    backgroundColor: 'rgba(10, 9, 8, 0.95)',
+                    borderColor: 'rgba(200, 164, 92, 0.3)',
+                    borderWidth: 1,
+                    padding: [12, 16],
+                    textStyle: {
+                        color: '#e8e4da',
+                        fontSize: 13
+                    },
+                    formatter: function(params) {
+                        if (params.seriesName === '对角线') return '';
+                        const data = params.data;
+                        const yearBuilt = data.value[0];
+                        const yearCurrent = data.value[1];
+                        const diff = data.value[2];
+                        const name = data.value[3];
+                        const level = data.value[4];
+                        const status = diff <= 50 ? '原构保存' : `经历重建（差异${diff}年）`;
+                        return `<strong style="color:#c8a45c;">${name}</strong><br/>
+                                始建年份：${yearBuilt}年<br/>
+                                现存年份：${yearCurrent}年<br/>
+                                保护级别：${level}<br/>
+                                年份差异：${diff}年<br/>
+                                状态：${status}`;
+                    }
+                },
+                // visualMap 实现颜色渐变 - 核心改进
+                visualMap: {
+                    show: true,
+                    min: 0,
+                    max: maxDiff,
+                    dimension: 2,  // 使用数据的第3个维度（差异值）来映射颜色
+                    orient: 'vertical',
+                    right: 20,
+                    top: 'center',
+                    text: ['差异大', '差异小'],
+                    textStyle: {
+                        color: '#9a958a',
+                        fontSize: 11
+                    },
+                    calculable: true,
+                    inRange: {
+                        color: colorPalette,
+                        symbolSize: [12, 50]
+                    },
+                    outOfRange: {
+                        color: '#999'
+                    },
+                    formatter: function(value) {
+                        return value + '年';
+                    }
+                },
+                grid: {
+                    left: 70,
+                    right: 100,  // 为visualMap留出空间
+                    top: 50,
+                    bottom: 70
+                },
+                xAxis: {
+                    type: 'value',
+                    name: '始建年份',
+                    nameLocation: 'middle',
+                    nameGap: 40,
+                    nameTextStyle: {
+                        color: '#9a958a',
+                        fontSize: 12
+                    },
+                    min: minYear,
+                    max: maxYear,
+                    interval: 100,  // 设置间隔为100年
+                    axisLine: {
+                        lineStyle: { color: 'rgba(200, 164, 92, 0.3)' }
+                    },
+                    axisLabel: {
+                        color: '#9a958a',
+                        formatter: '{value}',
+                        rotate: 30,  // 旋转30度避免重叠
+                        fontSize: 10
+                    },
+                    splitLine: {
+                        lineStyle: { color: 'rgba(200, 164, 92, 0.08)' }
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '现存年份',
+                    nameLocation: 'middle',
+                    nameGap: 55,
+                    nameTextStyle: {
+                        color: '#9a958a',
+                        fontSize: 12
+                    },
+                    min: minYear,
+                    max: maxYear,
+                    interval: 100,  // 设置间隔为100年
+                    axisLine: {
+                        lineStyle: { color: 'rgba(200, 164, 92, 0.3)' }
+                    },
+                    axisLabel: {
+                        color: '#9a958a',
+                        formatter: '{value}',
+                        fontSize: 10
+                    },
+                    splitLine: {
+                        lineStyle: { color: 'rgba(200, 164, 92, 0.08)' }
+                    }
+                },
+                series: [
+                    // 对角线（参考线）
+                    {
+                        name: '对角线',
+                        type: 'line',
+                        data: [[minYear, minYear], [maxYear, maxYear]],
+                        lineStyle: {
+                            color: 'rgba(200, 164, 92, 0.35)',
+                            type: 'dashed',
+                            width: 2
+                        },
+                        symbol: 'none',
+                        tooltip: {
+                            show: false
+                        },
+                        z: 1
+                    },
+                    // 气泡散点图
+                    {
+                        name: '建筑年代',
+                        type: 'scatter',
+                        data: scatterData,
+                        itemStyle: {
+                            shadowBlur: 6,
+                            shadowColor: 'rgba(0, 0, 0, 0.3)',
+                            shadowOffsetX: 0,
+                            shadowOffsetY: 2,
+                            opacity: 0.85
+                        },
+                        emphasis: {
+                            itemStyle: {
+                                shadowBlur: 12,
+                                shadowColor: 'rgba(200, 164, 92, 0.6)',
+                                opacity: 1
+                            },
+                            scale: 1.3
+                        },
+                        z: 10
+                    }
+                ],
+                // 动画效果
+                animation: true,
+                animationDuration: 800,
+                animationEasing: 'cubicOut',
+                animationDelay: function(idx) {
+                    return idx * 20;
+                }
+            };
+            
+            chart.setOption(option);
+            return chart;
+        }
+
+        // 保护级别与民族关联热力图
+        function initEthnicProtectionHeatmap() {
+            const chart = echarts.init(document.getElementById('ethnicProtectionHeatmap'));
+            
+            // 定义保护级别（X轴）
+            const protectionLevels = ['全国重点文物保护单位', '省级文物保护单位', '市县级文物保护单位', '其他'];
+            const levelLabels = ['全国重点', '省级', '市县级', '其他'];
+            
+            // 统计各民族在各保护级别的建筑数量
+            const ethnicData = {};
+            const excludedEthnics = ['西方文化', '外国', '欧美', '欧洲', 'nan'];
+            
+            buildings.forEach(b => {
+                const level = categorizeProtectionLevel(b.protection_level);
+                const groups = (b.ethnic_groups || []).filter(g => g && !excludedEthnics.includes(g));
+                
+                groups.forEach(ethnic => {
+                    if (!ethnicData[ethnic]) {
+                        ethnicData[ethnic] = {};
+                        protectionLevels.forEach(l => ethnicData[ethnic][l] = 0);
+                    }
+                    ethnicData[ethnic][level]++;
+                });
+            });
+            
+            // 按总建筑数排序民族
+            const sortedEthnics = Object.entries(ethnicData)
+                .map(([ethnic, levels]) => ({
+                    ethnic,
+                    total: Object.values(levels).reduce((a, b) => a + b, 0)
+                }))
+                .sort((a, b) => b.total - a.total)
+                .slice(0, 15); // 取前15个民族
+            
+            const ethnicNames = sortedEthnics.map(e => e.ethnic);
+            
+            // 构建热力图数据
+            const heatmapData = [];
+            let maxValue = 0;
+            
+            sortedEthnics.forEach((e, yIndex) => {
+                protectionLevels.forEach((level, xIndex) => {
+                    const value = ethnicData[e.ethnic][level] || 0;
+                    heatmapData.push([xIndex, yIndex, value]);
+                    if (value > maxValue) maxValue = value;
+                });
+            });
+            
+            chart.setOption({
+                backgroundColor: 'transparent',
+                tooltip: {
+                    position: 'top',
+                    backgroundColor: 'rgba(10, 9, 8, 0.95)',
+                    borderColor: 'rgba(200, 164, 92, 0.3)',
+                    borderWidth: 1,
+                    padding: [12, 16],
+                    textStyle: {
+                        color: '#e8e4da',
+                        fontSize: 13
+                    },
+                    formatter: function(params) {
+                        return `<strong style="color:#c8a45c;">${ethnicNames[params.data[1]]}</strong><br/>
+                                ${levelLabels[params.data[0]]}: <strong>${params.data[2]}</strong> 座`;
+                    }
+                },
+                grid: {
+                    left: 80,
+                    right: 60,
+                    top: 20,
+                    bottom: 80
+                },
+                xAxis: {
+                    type: 'category',
+                    data: levelLabels,
+                    axisLine: { lineStyle: { color: 'rgba(200, 164, 92, 0.3)' } },
+                    axisLabel: { 
+                        color: '#e8e4da', 
+                        fontSize: 12,
+                        interval: 0
+                    },
+                    splitArea: { show: false }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: ethnicNames,
+                    axisLine: { lineStyle: { color: 'rgba(200, 164, 92, 0.3)' } },
+                    axisLabel: { 
+                        color: '#e8e4da', 
+                        fontSize: 11 
+                    },
+                    splitArea: { show: false }
+                },
+                visualMap: {
+                    min: 0,
+                    max: maxValue,
+                    calculable: true,
+                    orient: 'horizontal',
+                    left: 'center',
+                    bottom: 10,
+                    inRange: {
+                        color: ['rgba(200, 164, 92, 0.1)', 'rgba(200, 164, 92, 0.3)', '#c8a45c', '#b8860b', '#8b6914']
+                    },
+                    textStyle: {
+                        color: '#9a958a'
+                    },
+                    formatter: function(value) {
+                        return value + '座';
+                    }
+                },
+                series: [{
+                    name: '建筑数量',
+                    type: 'heatmap',
+                    data: heatmapData,
+                    label: {
+                        show: true,
+                        color: '#e8e4da',
+                        fontSize: 11,
+                        formatter: function(params) {
+                            return params.data[2] > 0 ? params.data[2] : '';
+                        }
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowColor: 'rgba(200, 164, 92, 0.5)'
+                        }
+                    },
+                    itemStyle: {
+                        borderColor: '#0a0908',
+                        borderWidth: 2,
+                        borderRadius: 4
+                    }
+                }]
+            });
+            
+            return chart;
+        }
+
+        // 生成热力图洞察内容（已移除，HTML中无对应元素）
+        function renderHeatmapInsight() {
+            // 该函数保留但不再执行，因为 HTML 中已移除 heatmapInsightContent 元素
+            return;
+        }
+
+        // 初始化
+        renderOverview();
+        renderLevelTabs();
+        renderBuildingList();
+        renderRebuildStats();
+        renderBuildingSelector();
+        renderHeatmapInsight();
+        const protectionChart = initProtectionPieChart();
+        const lifespanChart = initLifespanChart();
+        const ethnicHeatmapChart = initEthnicProtectionHeatmap();
+        const yearComparisonChart = initDualTimelineCharts();
+
+        window.addEventListener('resize', () => {
+            protectionChart.resize();
+            lifespanChart.resize();
+            ethnicHeatmapChart.resize();
+            yearComparisonChart.resize();
+        });
+    </script>
+</body>
+</html>

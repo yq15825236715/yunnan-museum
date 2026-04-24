@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时光长廊 - 滇风·民族筑语</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/echarts.min.js"></script>
+    <style>
+        .timeline-container { padding: 40px 0; }
+        
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-3px);
+        }
+        
+        .stat-num {
+            font-size: 42px;
+            font-weight: 200;
+            color: var(--gold);
+            letter-spacing: 3px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+            margin-top: 8px;
+        }
+        
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-title {
+            font-size: 16px;
+            font-weight: 400;
+            color: var(--text-light);
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-dim);
+        }
+        
+        .chart-desc {
+            font-size: 13px;
+            color: var(--text-dim);
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .legend-bar {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 15px 0;
+            margin-bottom: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        /* 切换按钮 */
+        .view-toggle {
+            display: flex;
+            gap: 10px;
+        }
+
+        .toggle-btn {
+            padding: 8px 20px;
+            background: transparent;
+            border: 1px solid var(--border-dim);
+            border-radius: 4px;
+            color: var(--text-dim);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: var(--font-serif);
+        }
+
+        .toggle-btn:hover {
+            border-color: var(--gold);
+            color: var(--text-light);
+        }
+
+        .toggle-btn.active {
+            background: rgba(200, 164, 92, 0.15);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        @media (max-width: 1000px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* 展厅导航按钮 */
+        .hall-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 60px 0 40px;
+            border-top: 1px solid var(--border-dim);
+            margin-top: 40px;
+        }
+
+        .hall-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 30px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 14px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .hall-nav-btn:hover {
+            border-color: var(--gold);
+            background: rgba(200, 164, 92, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .hall-nav-btn.primary {
+            background: linear-gradient(135deg, var(--gold), var(--vermillion));
+            border-color: var(--gold);
+            color: #fff;
+        }
+
+        .hall-nav-btn.primary:hover {
+            box-shadow: 0 8px 25px rgba(200, 164, 92, 0.3);
+        }
+
+        .hall-nav-arrow {
+            font-size: 18px;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-logo" onclick="navigateTo('home.html')">
+            <div class="nav-logo-icon"><img src="assets/icons/icon.png" alt="滇"></div>
+            <span class="nav-logo-text">滇风·民族筑语</span>
+        </div>
+        <div class="nav-links">
+            <a href="javascript:void(0)" class="nav-link" onclick="navigateTo('home.html')">首页</a>
+            <a href="javascript:void(0)" class="nav-link active" onclick="navigateTo('hall-timeline.html')">时光长廊</a>
+            <a href="javascript:void(0)" class="nav-link" onclick="navigateTo('hall-map.html')">地理长卷</a>
+            <div class="nav-dropdown">
+                <span class="nav-link">更多展厅 ▾</span>
+                <div class="nav-dropdown-menu">
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-types.html')">建筑万象</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-ethnic.html')">民族交融</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-tech.html')">匠心传承</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-protection.html')">守护重生</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-insights.html')">回望·尾声</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-gallery.html')">建筑图鉴</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容 -->
+    <main class="main-content">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">展厅一</div>
+                <h1 class="section-title">时 光 长 廊</h1>
+                <p class="section-subtitle">穿越六百年时光，见证云南古建筑的建造轨迹</p>
+            </div>
+
+            <div class="timeline-container">
+                <!-- 统计卡片 -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-num" id="totalCount">63</div>
+                        <div class="stat-label">古建筑总数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-num" id="yearSpan">558</div>
+                        <div class="stat-label">年历史跨度</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-num" id="minYear">1382</div>
+                        <div class="stat-label">最早始建年份</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-num" id="maxYear">1910</div>
+                        <div class="stat-label">最晚始建年份</div>
+                    </div>
+                </div>
+
+                <!-- 建筑生命时间轴 -->
+                <div class="chart-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div class="chart-title" style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;">建筑生命时间轴</div>
+                        <div class="view-toggle">
+                            <button class="toggle-btn active" id="btnTimeline" onclick="switchView('timeline')">存在时间</button>
+                            <button class="toggle-btn" id="btnLifespan" onclick="switchView('lifespan')">存世时长</button>
+                        </div>
+                    </div>
+                    <div class="chart-desc" id="timelineDesc">
+                        每条横线代表一座古建筑的生命周期：<span style="color: #c8a45c;">金色圆点</span> 为始建年份，
+                        <span style="color: #4ecdc4;">青色终点</span> 为当前保存状态。可拖动下方时间轴查看不同时期，点击建筑名称查看详情。
+                    </div>
+                    <div class="chart-desc" id="lifespanDesc" style="display: none;">
+                        每条横线的长度代表古建筑的存世时长，越长表示存世越久。鼠标悬停可查看详细信息。
+                    </div>
+                    <div class="legend-bar" id="timelineLegend">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #c8a45c;"></div>
+                            <span>始建年份</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #4ecdc4;"></div>
+                            <span>保存至今</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: linear-gradient(90deg, #c8a45c, #4ecdc4);"></div>
+                            <span>存在时间</span>
+                        </div>
+                    </div>
+                    <div class="legend-bar" id="lifespanLegend" style="display: none;">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: linear-gradient(90deg, #27ae60, #c8a45c, #e74c3c);"></div>
+                            <span>存世时长（绿长红短）</span>
+                        </div>
+                    </div>
+                    <div id="lifespanChart" style="height: 1200px; overflow: hidden;"></div>
+                </div>
+
+                <!-- 朝代分布 -->
+                <div class="chart-card">
+                    <div class="chart-title">朝代分布</div>
+                    <div id="dynastyChart" style="height: 450px;"></div>
+                </div>
+
+                <!-- 年代趋势 -->
+                <div class="chart-card">
+                    <div class="chart-title">年代建造趋势</div>
+                    <div class="chart-desc">展示不同年代的建造数量，可以看出清代中后期（1800-1900年）是云南古建筑建造的高峰期。</div>
+                    <div id="trendChart" style="height: 300px;"></div>
+                </div>
+
+                <!-- 始建年份待考建筑 -->
+                <div class="chart-card" id="uncertainSection">
+                    <div class="chart-title">始建年份待考建筑</div>
+                    <div class="chart-desc">以下建筑的具体始建年份尚待考证，仅知其所属朝代或大致年代。</div>
+                    <div id="uncertainBuildings" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px;"></div>
+                </div>
+            </div>
+
+            <!-- 展厅导航 -->
+            <div class="hall-nav">
+                <a href="javascript:void(0)" class="hall-nav-btn" onclick="navigateTo('home.html')">
+                    <span class="hall-nav-arrow">←</span>
+                    <span>返回首页</span>
+                </a>
+                <a href="javascript:void(0)" class="hall-nav-btn primary" onclick="navigateTo('hall-map.html')">
+                    <span>进入下一展厅：地理长卷</span>
+                    <span class="hall-nav-arrow">→</span>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/data.js"></script>
+    <script>
+        // iframe内导航函数 - 通过postMessage保持音乐播放
+        function navigateTo(url) {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'navigate', url: url }, '*');
+            } else {
+                window.location.href = url;
+            }
+        }
+
+        // 处理建筑数据，生成时间轴数据
+        const buildings = BUILDINGS || [];
+        console.log('数据加载:', buildings.length, '栋建筑');
+        
+        // 始建年份不确定的建筑（有朝代信息但无具体年份）
+        const uncertainYearBuildings = buildings.filter(b => !b.year_built);
+        // 有明确始建年份的建筑
+        const certainYearBuildings = buildings.filter(b => b.year_built);
+        
+        // 更新统计数字（只统计有明确年份的建筑）
+        const validYears = certainYearBuildings.map(b => b.year_built);
+        if (validYears.length > 0) {
+            const minYear = Math.min(...validYears);
+            const maxYear = Math.max(...validYears);
+            document.getElementById('totalCount').textContent = buildings.length;
+            document.getElementById('minYear').textContent = minYear;
+            document.getElementById('maxYear').textContent = maxYear;
+            document.getElementById('yearSpan').textContent = maxYear - minYear;
+        }
+        
+        // 按始建年份排序（只排序有明确年份的建筑）
+        const sortedBuildings = [...certainYearBuildings].sort((a, b) => a.year_built - b.year_built);
+        console.log('排序完成，第一栋:', sortedBuildings[0]?.name, sortedBuildings[0]?.year_built);
+        
+        // 为时间轴准备数据
+        const currentYear = 2026;
+        const timelineData = sortedBuildings.map((b, index) => ({
+            name: b.name,
+            value: [index, b.year_built || 1800, currentYear],
+            yearBuilt: b.year_built,
+            dynasty: b.dynasty,
+            category: b.category
+        }));
+        console.log('时间轴数据:', timelineData.length, '条');
+
+        // 建筑生命时间轴 - 自定义渲染
+        const lifespanEl = document.getElementById('lifespanChart');
+        console.log('图表容器:', lifespanEl ? '找到' : '未找到');
+        const lifespanChart = echarts.init(lifespanEl);
+        
+        lifespanChart.setOption({
+            backgroundColor: 'transparent',
+            tooltip: {
+                trigger: 'item',
+                formatter: function(params) {
+                    const b = sortedBuildings[params.dataIndex];
+                    const yearsExist = currentYear - (b.year_built || 1800);
+                    return `
+                        <div style="padding: 8px;">
+                            <div style="font-size: 14px; color: #c8a45c; margin-bottom: 6px;">${b.name}</div>
+                            <div style="font-size: 12px; color: #9a958a;">
+                                始建：${b.year_built || '未知'}年 (${b.dynasty || '未知'})<br/>
+                                类型：${b.category || '未知'}<br/>
+                                存世：${yearsExist}年
+                            </div>
+                        </div>
+                    `;
+                }
+            },
+            grid: {
+                left: 180,
+                right: 60,
+                top: 20,
+                bottom: 80,
+                containLabel: false  // 防止标签溢出
+            },
+            xAxis: {
+                type: 'value',
+                min: 1350,
+                max: 2050,
+                axisLine: { lineStyle: { color: 'rgba(200, 164, 92, 0.3)' } },
+                axisLabel: {
+                    color: '#9a958a',
+                    fontSize: 11,
+                    formatter: '{value}'
+                },
+                splitLine: {
+                    lineStyle: { color: 'rgba(200, 164, 92, 0.08)' }
+                }
+            },
+            yAxis: {
+                type: 'category',
+                data: sortedBuildings.map(b => b.name.length > 10 ? b.name.substring(0, 10) + '...' : b.name),
+                inverse: true,  // 反转Y轴，使最早的建筑显示在顶部
+                axisLine: { lineStyle: { color: 'rgba(200, 164, 92, 0.3)' } },
+                axisLabel: {
+                    color: '#9a958a',
+                    fontSize: 10,
+                    width: 150,
+                    overflow: 'truncate'
+                },
+                triggerEvent: true
+            },
+            dataZoom: [
+                {
+                    type: 'slider',
+                    xAxisIndex: 0,
+                    filterMode: 'none',
+                    height: 30,
+                    bottom: 10,
+                    borderColor: 'rgba(200, 164, 92, 0.3)',
+                    backgroundColor: 'rgba(26, 24, 22, 0.8)',
+                    fillerColor: 'rgba(200, 164, 92, 0.15)',
+                    handleStyle: { color: '#c8a45c' },
+                    textStyle: { color: '#9a958a' },
+                    start: 0,
+                    end: 100
+                },
+                {
+                    type: 'slider',
+                    yAxisIndex: 0,
+                    filterMode: 'none',
+                    width: 20,
+                    right: 20,
+                    borderColor: 'rgba(200, 164, 92, 0.3)',
+                    backgroundColor: 'rgba(26, 24, 22, 0.8)',
+                    fillerColor: 'rgba(200, 164, 92, 0.15)',
+                    handleStyle: { color: '#c8a45c' },
+                    textStyle: { color: '#9a958a' }
+                }
+            ],
+            series: [{
+                type: 'custom',
+                clip: true,  // 启用裁剪，防止溢出
+                renderItem: function(params, api) {
+                    const categoryIndex = api.value(0);
+                    const start = api.coord([api.value(1), categoryIndex]);
+                    const end = api.coord([api.value(2), categoryIndex]);
+                    const height = 8;
+                    
+                    return {
+                        type: 'group',
+                        children: [
+                            // 时间线
+                            {
+                                type: 'rect',
+                                shape: {
+                                    x: start[0],
+                                    y: start[1] - height / 2,
+                                    width: end[0] - start[0],
+                                    height: height
+                                },
+                                style: {
+                                    fill: {
+                                        type: 'linear',
+                                        x: 0, y: 0, x2: 1, y2: 0,
+                                        colorStops: [
+                                            { offset: 0, color: 'rgba(200, 164, 92, 0.6)' },
+                                            { offset: 1, color: 'rgba(78, 205, 196, 0.6)' }
+                                        ]
+                                    }
+                                }
+                            },
+                            // 起始点
+                            {
+                                type: 'circle',
+                                shape: {
+                                    cx: start[0],
+                                    cy: start[1],
+                                    r: 5
+                                },
+                                style: {
+                                    fill: '#c8a45c'
+                                }
+                            },
+                            // 结束点
+                            {
+                                type: 'circle',
+                                shape: {
+                                    cx: end[0],
+                                    cy: end[1],
+                                    r: 5
+                                },
+                                style: {
+                                    fill: '#4ecdc4'
+                                }
+                            }
+                        ]
+                    };
+                },
+                encode: {
+                    x: [1, 2],
+                    y: 0
+                },
+                data: timelineData
+            }]
+        });
+
+        // 朝代分布旭日图
+        const dynastyChart = echarts.init(document.getElementById('dynastyChart'));
+        
+        // 统计朝代分布 - 构建旭日图数据结构
+        const dynastyMap = {
+            '明': { name: '明代', color: '#FF6B6B', children: {} },
+            '清': { name: '清代', color: '#4ECDC4', children: {} },
+            '民国': { name: '民国', color: '#45B7D1', children: {} },
+            '其他': { name: '其他', color: '#96CEB4', children: {} }
+        };
+        
+        buildings.forEach(b => {
+            const dynasty = b.dynasty || '未知';
+            const year = b.year_built;
+            
+            // 确定主朝代
+            let mainDynasty = '其他';
+            if (dynasty.includes('明') && !dynasty.includes('清')) {
+                mainDynasty = '明';
+            } else if (dynasty.includes('清')) {
+                mainDynasty = '清';
+            } else if (dynasty.includes('民国')) {
+                mainDynasty = '民国';
+            }
+            
+            // 确定具体年代
+            let period = '待考';
+            if (year) {
+                if (mainDynasty === '明') {
+                    if (year < 1450) period = '明初';
+                    else if (year < 1550) period = '明中前期';
+                    else if (year < 1644) period = '明中后期';
+                    else period = '明末';
+                } else if (mainDynasty === '清') {
+                    if (year < 1700) period = '清初';
+                    else if (year < 1800) period = '清中前期';
+                    else if (year < 1850) period = '清中期';
+                    else if (year < 1900) period = '清晚期';
+                    else period = '清末';
+                } else if (mainDynasty === '民国') {
+                    period = '民国时期';
+                } else {
+                    const decade = Math.floor(year / 100) * 100;
+                    period = `${decade}年代`;
+                }
+            }
+            
+            // 统计
+            if (!dynastyMap[mainDynasty].children[period]) {
+                dynastyMap[mainDynasty].children[period] = 0;
+            }
+            dynastyMap[mainDynasty].children[period]++;
+        });
+        
+        // 构建旭日图数据
+        const sunburstData = Object.values(dynastyMap)
+            .filter(d => Object.keys(d.children).length > 0)
+            .map(d => ({
+                name: d.name,
+                value: Object.values(d.children).reduce((a, b) => a + b, 0),
+                itemStyle: { color: d.color },
+                children: Object.entries(d.children).map(([name, value], index) => ({
+                    name,
+                    value,
+                    itemStyle: {
+                        color: adjustColor(d.color, index * 20 - 30)
+                    }
+                }))
+            }));
+        
+        // 颜色调整函数
+        function adjustColor(color, offset) {
+            const hex = color.replace('#', '');
+            let r = parseInt(hex.substr(0, 2), 16) + offset;
+            let g = parseInt(hex.substr(2, 2), 16) + offset;
+            let b = parseInt(hex.substr(4, 2), 16) + offset;
+            r = Math.max(0, Math.min(255, r));
+            g = Math.max(0, Math.min(255, g));
+            b = Math.max(0, Math.min(255, b));
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        dynastyChart.setOption({
+            backgroundColor: 'transparent',
+            tooltip: {
+                trigger: 'item',
+                backgroundColor: 'rgba(26, 24, 22, 0.95)',
+                borderColor: 'rgba(200, 164, 92, 0.3)',
+                textStyle: { color: '#e8e4dc' },
+                formatter: function(params) {
+                    const percent = ((params.value / buildings.length) * 100).toFixed(1);
+                    return `<div style="padding: 5px;"><strong style="color:#c8a45c;">${params.name}</strong><br/>${params.value} 座 (${percent}%)</div>`;
+                }
+            },
+            series: [{
+                type: 'sunburst',
+                data: sunburstData,
+                radius: ['15%', '70%'],
+                center: ['50%', '50%'],
+                sort: function(a, b) { return b.value - a.value; },
+                emphasis: {
+                    focus: 'ancestor',
+                    itemStyle: {
+                        shadowBlur: 10,
+                        shadowColor: 'rgba(0, 0, 0, 0.3)'
+                    }
+                },
+                label: {
+                    show: true,
+                    position: 'outside',
+                    color: '#e8e4dc',
+                    fontSize: 11,
+                    distance: 5,
+                    formatter: function(params) {
+                        return params.name;
+                    }
+                },
+                labelLine: {
+                    show: true,
+                    length: 15,
+                    length2: 10,
+                    lineStyle: {
+                        color: 'rgba(200, 164, 92, 0.5)',
+                        width: 1
+                    }
+                },
+                levels: [
+                    {}, // 根级别
+                    {
+                        // 第一层：朝代（标签在圈内）
+                        r0: '15%',
+                        r: '50%',
+                        itemStyle: {
+                            borderRadius: 8,
+                            borderColor: '#1a1816',
+                            borderWidth: 3
+                        },
+                        label: {
+                            show: true,
+                            position: 'inside',
+                            color: '#fff',
+                            fontSize: 14,
+                            fontWeight: 'bold',
+                            textShadowColor: 'rgba(0, 0, 0, 0.5)',
+                            textShadowBlur: 3
+                        }
+                    },
+                    {
+                        // 第二层：具体年代（标签在圈外）
+                        r0: '50%',
+                        r: '75%',
+                        itemStyle: {
+                            borderRadius: 6,
+                            borderColor: '#1a1816',
+                            borderWidth: 2
+                        },
+                        label: {
+                            show: true,
+                            position: 'outside',
+                            color: '#e8e4dc',
+                            fontSize: 11,
+                            distance: 5
+                        },
+                        labelLine: {
+                            show: true,
+                            length: 12,
+                            length2: 8,
+                            lineStyle: {
+                                color: 'rgba(200, 164, 92, 0.5)',
+                                width: 1
+                            }
+                        }
+                    }
+                ]
+            }]
+        });
+
+        // 年代趋势柱状图
+        const trendChart = echarts.init(document.getElementById('trendChart'));
+        
+        // 按年代分组统计
+        const decadeCount = {};
+        buildings.forEach(b => {
+            if (b.year_built) {
+                const decade = Math.floor(b.year_built / 50) * 50;
+                decadeCount[decade] = (decadeCount[decade] || 0) + 1;
+            }
+        });
+        
+        const decades = Object.keys(decadeCount).map(Number).sort((a, b) => a - b);
+        const decadeLabels = decades.map(d => `${d}s`);
+        const decadeValues = decades.map(d => decadeCount[d]);
+        
+        // 计算平均值、最大值、最小值
+        const avgValue = (decadeValues.reduce((a, b) => a + b, 0) / decadeValues.length).toFixed(1);
+        const maxValue = Math.max(...decadeValues);
+        const minValue = Math.min(...decadeValues);
+        const maxIndex = decadeValues.indexOf(maxValue);
+        const minIndex = decadeValues.indexOf(minValue);
+
+        trendChart.setOption({
+            backgroundColor: 'transparent',
+            tooltip: { 
+                trigger: 'axis',
+                formatter: function(params) {
+                    const bar = params.find(p => p.seriesType === 'bar');
+                    const line = params.find(p => p.seriesType === 'line');
+                    let result = `${bar.name}<br/>建造数量: <b>${bar.value}</b> 座`;
+                    if (line) {
+                        result += `<br/>趋势值: <b>${line.value}</b>`;
+                    }
+                    return result;
+                }
+            },
+            legend: {
+                data: ['建造数量', '趋势线', '平均线'],
+                top: 0,
+                right: 20,
+                textStyle: { color: '#9a958a', fontSize: 11 }
+            },
+            grid: { left: 50, right: 20, top: 40, bottom: 60 },
+            xAxis: {
+                type: 'category',
+                data: decadeLabels,
+                axisLine: { lineStyle: { color: 'rgba(200, 164, 92, 0.3)' } },
+                axisLabel: { color: '#9a958a', fontSize: 10, rotate: 45 }
+            },
+            yAxis: {
+                type: 'value',
+                axisLine: { show: false },
+                splitLine: { lineStyle: { color: 'rgba(200, 164, 92, 0.1)' } },
+                axisLabel: { color: '#9a958a' }
+            },
+            series: [
+                // 柱状图
+                {
+                    name: '建造数量',
+                    type: 'bar',
+                    data: decadeValues,
+                    barWidth: '50%',
+                    itemStyle: {
+                        color: function(params) {
+                            if (params.dataIndex === maxIndex) return '#FF6B6B'; // 最大值红色
+                            return {
+                                type: 'linear',
+                                x: 0, y: 0, x2: 0, y2: 1,
+                                colorStops: [
+                                    { offset: 0, color: '#c8a45c' },
+                                    { offset: 1, color: 'rgba(200, 164, 92, 0.3)' }
+                                ]
+                            };
+                        },
+                        borderRadius: [4, 4, 0, 0]
+                    },
+                    label: {
+                        show: true,
+                        position: 'top',
+                        color: '#e8e4dc',
+                        fontSize: 10,
+                        formatter: function(params) {
+                            if (params.dataIndex === maxIndex) return `最大 ${params.value}`;
+                            return '';
+                        }
+                    },
+                    markPoint: {
+                        symbol: 'pin',
+                        symbolSize: 40,
+                        data: [
+                            { 
+                                name: '最大值', 
+                                type: 'max',
+                                itemStyle: { color: '#FF6B6B' },
+                                label: { color: '#fff', fontSize: 10 }
+                            }
+                        ]
+                    }
+                },
+                // 趋势线
+                {
+                    name: '趋势线',
+                    type: 'line',
+                    data: decadeValues,
+                    smooth: true,
+                    symbol: 'circle',
+                    symbolSize: 6,
+                    lineStyle: {
+                        color: '#c8a45c',
+                        width: 2,
+                        type: 'solid'
+                    },
+                    itemStyle: {
+                        color: '#c8a45c'
+                    }
+                },
+                // 平均线
+                {
+                    name: '平均线',
+                    type: 'line',
+                    data: Array(decadeValues.length).fill(parseFloat(avgValue)),
+                    symbol: 'none',
+                    lineStyle: {
+                        color: '#96CEB4',
+                        width: 2,
+                        type: 'dashed'
+                    },
+                    label: {
+                        show: true,
+                        position: 'end',
+                        color: '#96CEB4',
+                        fontSize: 10,
+                        formatter: `平均: ${avgValue}`
+                    }
+                }
+            ]
+        });
+
+        // 当前视图模式
+        let currentView = 'timeline';
+
+        // 切换视图
+        function switchView(view) {
+            currentView = view;
+            
+            // 更新按钮状态
+            document.getElementById('btnTimeline').classList.toggle('active', view === 'timeline');
+            document.getElementById('btnLifespan').classList.toggle('active', view === 'lifespan');
+            
+            // 切换描述和图例
+            document.getElementById('timelineDesc').style.display = view === 'timeline' ? 'block' : 'none';
+            document.getElementById('lifespanDesc').style.display = view === 'lifespan' ? 'block' : 'none';
+            document.getElementById('timelineLegend').style.display = view === 'timeline' ? 'flex' : 'none';
+            document.getElementById('lifespanLegend').style.display = view === 'lifespan' ? 'flex' : 'none';
+            
+            // 更新图表
+            if (view === 'timeline') {
+                renderTimelineView();
+            } else {
+                renderLifespanView();
+            }
+        }
+
+        // 渲染存在时间视图（原有视图）
+        function renderTimelineView() {
+            lifespanChart.setOption({
+                xAxis: {
+                    type: 'value',
+                    min: 1350,
+                    max: 2050,
+                    axisLine: { lineStyle: { color: 'rgba(200, 164, 92, 0.3)' } },
+                    axisLabel: {
+                        color: '#9a958a',
+                        fontSize: 11,
+                        formatter: '{value}'
+                    },
+                    splitLine: {
+                        lineStyle: { color: 'rgba(200, 164, 92, 0.08)' }
+                    }
+                },
+                series: [{
+                    type: 'custom',
+                    clip: true,
+                    renderItem: function(params, api) {
+                        const categoryIndex = api.value(0);
+                        const start = api.coord([api.value(1), categoryIndex]);
+                        const end = api.coord([api.value(2), categoryIndex]);
+                        const height = 8;
+                        
+                        return {
+                            type: 'group',
+                            children: [
+                                {
+                                    type: 'rect',
+                                    shape: {
+                                        x: start[0],
+                                        y: start[1] - height / 2,
+                                        width: end[0] - start[0],
+                                        height: height
+                                    },
+                                    style: {
+                                        fill: {
+                                            type: 'linear',
+                                            x: 0, y: 0, x2: 1, y2: 0,
+                                            colorStops: [
+                                                { offset: 0, color: 'rgba(200, 164, 92, 0.6)' },
+                                                { offset: 1, color: 'rgba(78, 205, 196, 0.6)' }
+                                            ]
+                                        }
+                                    }
+                                },
+                                {
+                                    type: 'circle',
+                                    shape: { cx: start[0], cy: start[1], r: 5 },
+                                    style: { fill: '#c8a45c' }
+                                },
+                                {
+                                    type: 'circle',
+                                    shape: { cx: end[0], cy: end[1], r: 5 },
+                                    style: { fill: '#4ecdc4' }
+                                }
+                            ]
+                        };
+                    },
+                    encode: { x: [1, 2], y: 0 },
+                    data: timelineData
+                }]
+            });
+        }
+
+        // 渲染存世时长视图
+        function renderLifespanView() {
+            // 计算存世时长并排序
+            const lifespanData = sortedBuildings.map((b, index) => {
+                const yearBuilt = b.year_built || 1800;
+                const lifespan = currentYear - yearBuilt;
+                return {
+                    name: b.name,
+                    value: [index, lifespan, yearBuilt],
+                    lifespan: lifespan,
+                    yearBuilt: yearBuilt,
+                    dynasty: b.dynasty,
+                    category: b.category
+                };
+            }).sort((a, b) => b.lifespan - a.lifespan);
+
+            // 更新Y轴数据
+            const sortedNames = lifespanData.map(d => d.name.length > 10 ? d.name.substring(0, 10) + '...' : d.name);
+            
+            // 计算最大存世时长
+            const maxLifespan = Math.max(...lifespanData.map(d => d.lifespan));
+            
+            lifespanChart.setOption({
+                xAxis: {
+                    type: 'value',
+                    min: 0,
+                    max: Math.ceil(maxLifespan / 100) * 100 + 50,
+                    axisLine: { lineStyle: { color: 'rgba(200, 164, 92, 0.3)' } },
+                    axisLabel: {
+                        color: '#9a958a',
+                        fontSize: 11,
+                        formatter: '{value}年'
+                    },
+                    splitLine: {
+                        lineStyle: { color: 'rgba(200, 164, 92, 0.08)' }
+                    }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: sortedNames,
+                    inverse: true,
+                    axisLine: { lineStyle: { color: 'rgba(200, 164, 92, 0.3)' } },
+                    axisLabel: {
+                        color: '#9a958a',
+                        fontSize: 10,
+                        width: 150,
+                        overflow: 'truncate'
+                    }
+                },
+                series: [{
+                    type: 'custom',
+                    clip: true,
+                    renderItem: function(params, api) {
+                        const categoryIndex = api.value(0);
+                        const lifespan = api.value(1);
+                        const start = api.coord([0, categoryIndex]);
+                        const end = api.coord([lifespan, categoryIndex]);
+                        const height = 12;
+                        
+                        // 根据存世时长计算颜色（绿色长，红色短）
+                        const maxLife = 650; // 最大存世时长约650年
+                        const ratio = lifespan / maxLife;
+                        let color;
+                        if (ratio > 0.7) {
+                            color = '#27ae60'; // 绿色 - 存世很久
+                        } else if (ratio > 0.4) {
+                            color = '#c8a45c'; // 金色 - 存世中等
+                        } else {
+                            color = '#e74c3c'; // 红色 - 存世较短
+                        }
+                        
+                        return {
+                            type: 'group',
+                            children: [
+                                {
+                                    type: 'rect',
+                                    shape: {
+                                        x: start[0],
+                                        y: start[1] - height / 2,
+                                        width: end[0] - start[0],
+                                        height: height
+                                    },
+                                    style: {
+                                        fill: color,
+                                        opacity: 0.8
+                                    }
+                                },
+                                {
+                                    type: 'text',
+                                    style: {
+                                        x: end[0] + 5,
+                                        y: start[1],
+                                        text: lifespan + '年',
+                                        fill: '#9a958a',
+                                        fontSize: 10
+                                    }
+                                }
+                            ]
+                        };
+                    },
+                    encode: { x: [1], y: 0 },
+                    data: lifespanData
+                }]
+            });
+        }
+
+        // 渲染始建年份待考建筑
+        function renderUncertainBuildings() {
+            const container = document.getElementById('uncertainBuildings');
+            const section = document.getElementById('uncertainSection');
+            
+            if (uncertainYearBuildings.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+            
+            container.innerHTML = uncertainYearBuildings.map(b => `
+                <div style="background: rgba(200, 164, 92, 0.05); border: 1px solid var(--border-dim); border-radius: 8px; padding: 15px; transition: all 0.3s;" 
+                     onmouseover="this.style.borderColor='var(--gold)'" 
+                     onmouseout="this.style.borderColor='var(--border-dim)'">
+                    <div style="font-size: 14px; color: var(--gold); margin-bottom: 8px; letter-spacing: 1px;">${b.name}</div>
+                    <div style="display: flex; gap: 15px; font-size: 12px; color: var(--text-dim);">
+                        <span>朝代：<span style="color: var(--text-light);">${b.dynasty || '待考'}</span></span>
+                        <span>类型：<span style="color: var(--text-light);">${b.category || '未知'}</span></span>
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-dim); margin-top: 8px;">
+                        地区：${b.region || '未知'}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        renderUncertainBuildings();
+
+        // 响应式
+        window.addEventListener('resize', () => {
+            lifespanChart.resize();
+            dynastyChart.resize();
+            trendChart.resize();
+        });
+    </script>
+</body>
+</html>

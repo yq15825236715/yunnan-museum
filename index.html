@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>滇风·民族筑语</title>
+    <!-- 预加载关键资源 -->
+    <link rel="preload" href="css/style.css" as="style">
+    <link rel="preload" href="home.html" as="fetch" crossorigin>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* 入口动画层 */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-darkest);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            cursor: pointer;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        .splash-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .splash-char {
+            font-size: 180px;
+            font-weight: 100;
+            color: var(--gold);
+            letter-spacing: 20px;
+            text-shadow: 0 0 80px rgba(200, 164, 92, 0.5);
+            animation: breathe 3s ease-in-out infinite, fadeInBlur 1.5s ease forwards;
+        }
+
+        @keyframes breathe {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+
+        @keyframes fadeInBlur {
+            0% { opacity: 0; filter: blur(20px); }
+            100% { opacity: 1; filter: blur(0); }
+        }
+
+        .splash-hint {
+            margin-top: 40px;
+            font-size: 14px;
+            color: var(--text-dim);
+            letter-spacing: 8px;
+            animation: fadeIn 1s ease 1s forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* iframe容器 */
+        .content-frame {
+            width: 100%;
+            height: 100vh;
+            border: none;
+            display: block;
+        }
+
+        /* 音乐控制按钮 - 移到左下角避免与导航冲突 */
+        .music-toggle-nav {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(26, 24, 22, 0.9);
+            border: 1px solid var(--border-dim);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            z-index: 10001;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .music-toggle-nav:hover {
+            border-color: var(--gold);
+            background: rgba(200, 164, 92, 0.1);
+        }
+
+        .music-toggle-nav .music-icon {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 14px;
+        }
+
+        .music-toggle-nav .music-icon .bar {
+            width: 3px;
+            background: var(--text-dim);
+            border-radius: 1px;
+            transition: all 0.3s;
+        }
+
+        .music-toggle-nav .music-icon .bar:nth-child(1) { height: 6px; }
+        .music-toggle-nav .music-icon .bar:nth-child(2) { height: 10px; }
+        .music-toggle-nav .music-icon .bar:nth-child(3) { height: 4px; }
+
+        .music-toggle-nav.playing .music-icon .bar {
+            background: var(--gold);
+            animation: musicBar 0.8s ease-in-out infinite;
+        }
+
+        .music-toggle-nav.playing .music-icon .bar:nth-child(1) { animation-delay: 0s; }
+        .music-toggle-nav.playing .music-icon .bar:nth-child(2) { animation-delay: 0.2s; }
+        .music-toggle-nav.playing .music-icon .bar:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes musicBar {
+            0%, 100% { height: 4px; }
+            50% { height: 14px; }
+        }
+
+        .music-toggle-nav::after {
+            content: '背景音乐';
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            padding: 5px 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 4px;
+            font-size: 11px;
+            color: var(--text-dim);
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+
+        .music-toggle-nav:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+<body>
+    <!-- 入口动画 -->
+    <div class="splash-screen" id="splashScreen">
+        <div class="splash-char">滇</div>
+        <div class="splash-hint">点击进入</div>
+    </div>
+
+    <!-- 音乐控制按钮 -->
+    <button class="music-toggle-nav" id="musicToggle" title="背景音乐" style="display: none;">
+        <div class="music-icon">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+    </button>
+
+    <!-- 主内容iframe -->
+    <iframe id="contentFrame" class="content-frame" style="display: none;"></iframe>
+    
+    <!-- 页面切换加载指示器 -->
+    <div id="loadingIndicator" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, var(--gold), var(--vermillion));
+        z-index: 10002;
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.3s ease;
+        pointer-events: none;
+    "></div>
+
+    <!-- 背景音乐 - 延迟加载优化 -->
+    <audio id="bgMusic" loop preload="none">
+        <source src="assets/music/bgm.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const splash = document.getElementById('splashScreen');
+        const musicToggle = document.getElementById('musicToggle');
+        const bgMusic = document.getElementById('bgMusic');
+        const contentFrame = document.getElementById('contentFrame');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        
+        let isPlaying = false;
+        const defaultVolume = 0.6;
+        bgMusic.volume = defaultVolume;
+        
+        // 页面缓存
+        const pageCache = new Map();
+        const PAGES = [
+            'home.html',
+            'hall-timeline.html',
+            'hall-map.html',
+            'hall-gallery.html',
+            'hall-types.html',
+            'hall-ethnic.html',
+            'hall-tech.html',
+            'hall-protection.html',
+            'hall-insights.html'
+        ];
+        
+        // 预加载所有页面（后台静默加载）
+        function preloadPages() {
+            PAGES.forEach(page => {
+                fetch(page).then(response => {
+                    if (response.ok) {
+                        pageCache.set(page, 'loaded');
+                        console.log('预加载完成:', page);
+                    }
+                }).catch(() => {});
+            });
+        }
+
+        // 显示加载指示器
+        function showLoading() {
+            loadingIndicator.style.transform = 'scaleX(0.3)';
+            setTimeout(() => {
+                loadingIndicator.style.transform = 'scaleX(0.7)';
+            }, 100);
+        }
+        
+        // 隐藏加载指示器
+        function hideLoading() {
+            loadingIndicator.style.transform = 'scaleX(1)';
+            setTimeout(() => {
+                loadingIndicator.style.transform = 'scaleX(0)';
+            }, 200);
+        }
+
+        // 从localStorage恢复状态
+        function restoreState() {
+            const saved = localStorage.getItem('musicState');
+            if (saved) {
+                const state = JSON.parse(saved);
+                bgMusic.currentTime = state.currentTime || 0;
+                bgMusic.volume = state.volume || defaultVolume;
+                if (state.isPlaying) {
+                    bgMusic.play().then(() => {
+                        isPlaying = true;
+                        musicToggle.classList.add('playing');
+                    }).catch(() => {});
+                }
+            }
+        }
+
+        // 保存状态
+        function saveState() {
+            localStorage.setItem('musicState', JSON.stringify({
+                isPlaying: isPlaying,
+                currentTime: bgMusic.currentTime,
+                volume: bgMusic.volume
+            }));
+        }
+
+        // 定期保存进度
+        setInterval(() => {
+            if (isPlaying) {
+                saveState();
+            }
+        }, 3000);
+
+        // 点击入口动画
+        splash.addEventListener('click', function() {
+            this.classList.add('hidden');
+            musicToggle.style.display = 'flex';
+            contentFrame.style.display = 'block';
+            
+            // 开始预加载其他页面
+            setTimeout(preloadPages, 1000);
+            
+            // 加载首页
+            showLoading();
+            contentFrame.src = 'home.html';
+            
+            // 延迟加载并播放音乐（优化首屏加载）
+            setTimeout(() => {
+                bgMusic.load(); // 开始加载音乐
+                bgMusic.play().then(() => {
+                    isPlaying = true;
+                    musicToggle.classList.add('playing');
+                    saveState();
+                }).catch(() => {
+                    console.log('音乐播放需要用户交互');
+                });
+            }, 500);
+        });
+
+        // iframe加载完成
+        contentFrame.addEventListener('load', function() {
+            hideLoading();
+        });
+
+        // 音乐控制
+        musicToggle.addEventListener('click', function() {
+            if (isPlaying) {
+                bgMusic.pause();
+                this.classList.remove('playing');
+                isPlaying = false;
+            } else {
+                bgMusic.play().then(() => {
+                    this.classList.add('playing');
+                    isPlaying = true;
+                }).catch(() => {});
+            }
+            saveState();
+        });
+
+        // 页面加载时恢复状态 - 注释掉自动跳过启动动画的功能
+        // window.addEventListener('load', function() {
+        //     const saved = localStorage.getItem('musicState');
+        //     if (saved) {
+        //         const state = JSON.parse(saved);
+        //         if (state.isPlaying) {
+        //             splash.classList.add('hidden');
+        //             musicToggle.style.display = 'flex';
+        //             contentFrame.style.display = 'block';
+        //             showLoading();
+        //             contentFrame.src = 'home.html';
+        //             setTimeout(preloadPages, 1000);
+        //             restoreState();
+        //         }
+        //     }
+        // });
+
+        // 页面离开前保存
+        window.addEventListener('beforeunload', saveState);
+
+        // 监听来自iframe的导航请求
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'navigate') {
+                showLoading();
+                contentFrame.src = event.data.url;
+            }
+        });
+    </script>
+</body>
+</html>

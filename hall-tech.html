@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>匠心传承 - 滇风·民族筑语</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/echarts.min.js"></script>
+    <style>
+        .tech-category-section { margin-bottom: 50px; }
+        .tech-category-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .tech-category-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 8px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .tech-category-card:hover, .tech-category-card.active {
+            border-color: var(--gold);
+            background: rgba(200, 164, 92, 0.05);
+        }
+        .tech-category-icon { font-size: 36px; margin-bottom: 12px; }
+        .tech-category-name { font-size: 15px; color: var(--gold); letter-spacing: 2px; margin-bottom: 8px; }
+        .tech-category-count { font-size: 12px; color: var(--text-dim); }
+        .tech-detail-section { margin-bottom: 50px; }
+        .tech-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-dim);
+        }
+        .tech-detail-title { font-size: 24px; color: var(--gold); letter-spacing: 3px; }
+        .tech-detail-desc { font-size: 14px; color: var(--text-dim); max-width: 600px; }
+        .ethnic-selector { display: flex; justify-content: center; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
+        .ethnic-selector-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .ethnic-selector-item:hover { background: rgba(200, 164, 92, 0.1); }
+        .ethnic-selector-item.active { background: rgba(200, 164, 92, 0.15); }
+        .ethnic-selector-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid var(--border-dim);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            background: rgba(200, 164, 92, 0.1);
+        }
+        .ethnic-selector-item:hover .ethnic-selector-icon,
+        .ethnic-selector-item.active .ethnic-selector-icon {
+            border-color: var(--gold);
+            box-shadow: 0 0 15px rgba(200, 164, 92, 0.3);
+        }
+        .ethnic-selector-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .ethnic-selector-name { margin-top: 8px; font-size: 12px; color: var(--text-dim); letter-spacing: 1px; transition: color 0.3s; }
+        .ethnic-selector-item:hover .ethnic-selector-name,
+        .ethnic-selector-item.active .ethnic-selector-name { color: var(--gold); }
+        .ethnic-tech-card-container { position: relative; min-height: 300px; overflow: hidden; }
+        .ethnic-tech-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 8px;
+            overflow: hidden;
+            position: absolute;
+            width: 100%;
+            opacity: 0;
+            transform: translateX(50px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+        .ethnic-tech-card.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+            position: relative;
+        }
+        .ethnic-tech-card.exit-left { opacity: 0; transform: translateX(-50px); }
+        .ethnic-tech-card.exit-right { opacity: 0; transform: translateX(50px); }
+        .ethnic-tech-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 25px;
+            background: rgba(200, 164, 92, 0.05);
+            border-bottom: 1px solid var(--border-dim);
+        }
+        .ethnic-tech-icon { width: 55px; height: 55px; border-radius: 50%; border: 2px solid var(--gold); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .ethnic-tech-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .ethnic-tech-name { font-size: 18px; color: var(--text-light); letter-spacing: 2px; }
+        .ethnic-tech-body { padding: 25px; }
+        .ethnic-tech-features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .ethnic-tech-feature { padding: 15px; background: rgba(200, 164, 92, 0.05); border-radius: 6px; border-left: 3px solid var(--gold); }
+        .ethnic-tech-feature-title { font-size: 14px; color: var(--gold); letter-spacing: 1px; margin-bottom: 8px; }
+        .ethnic-tech-feature-desc { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+        .ethnic-tech-buildings { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-dim); }
+        .ethnic-tech-buildings-title { font-size: 12px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 12px; }
+        .ethnic-tech-building-tag {
+            display: inline-block;
+            padding: 6px 12px;
+            margin-right: 10px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: var(--text-light);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            border: 1px solid var(--border-dim);
+            transition: all 0.3s;
+        }
+        .ethnic-tech-building-tag:hover { border-color: var(--gold); color: var(--gold); }
+        @media (max-width: 768px) { .ethnic-tech-features { grid-template-columns: 1fr; } }
+        .charts-section { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 50px; }
+        .chart-card { background: var(--bg-card); border: 1px solid var(--border-dim); border-radius: 8px; padding: 25px; }
+        .chart-title { font-size: 16px; color: var(--text-light); letter-spacing: 3px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-dim); }
+        .tech-comparison-section { margin-top: 50px; }
+        .tech-comparison-table { width: 100%; border-collapse: collapse; background: var(--bg-card); border-radius: 8px; overflow: hidden; }
+        .tech-comparison-table th, .tech-comparison-table td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border-dim); }
+        .tech-comparison-table th { background: rgba(200, 164, 92, 0.1); color: var(--gold); font-size: 13px; letter-spacing: 2px; font-weight: 400; }
+        .tech-comparison-table td { font-size: 13px; color: var(--text-light); }
+        .tech-comparison-table tr:hover td { background: rgba(200, 164, 92, 0.03); }
+        .tech-tag { display: inline-block; padding: 3px 8px; margin: 2px; font-size: 11px; background: rgba(200, 164, 92, 0.15); color: var(--gold); border-radius: 3px; }
+        @media (max-width: 1200px) { .tech-category-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) { .tech-category-grid { grid-template-columns: 1fr; } .charts-section { grid-template-columns: 1fr; } }
+
+        /* 展厅导航按钮 */
+        .hall-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 60px 0 40px;
+            border-top: 1px solid var(--border-dim);
+            margin-top: 40px;
+        }
+
+        .hall-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 30px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 14px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .hall-nav-btn:hover {
+            border-color: var(--gold);
+            background: rgba(200, 164, 92, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .hall-nav-btn.primary {
+            background: linear-gradient(135deg, var(--gold), var(--vermillion));
+            border-color: var(--gold);
+            color: #fff;
+        }
+
+        .hall-nav-btn.primary:hover {
+            box-shadow: 0 8px 25px rgba(200, 164, 92, 0.3);
+        }
+
+        .hall-nav-arrow {
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-logo" onclick="navigateTo('home.html')">
+            <div class="nav-logo-icon"><img src="assets/icons/icon.png" alt="滇"></div>
+            <span class="nav-logo-text">滇风·民族筑语</span>
+        </div>
+        <div class="nav-links">
+            <a href="javascript:void(0)" class="nav-link" onclick="navigateTo('home.html')">首页</a>
+            <a href="javascript:void(0)" class="nav-link" onclick="navigateTo('hall-timeline.html')">时光长廊</a>
+            <a href="javascript:void(0)" class="nav-link" onclick="navigateTo('hall-map.html')">地理长卷</a>
+            <div class="nav-dropdown">
+                <span class="nav-link">更多展厅 ▾</span>
+                <div class="nav-dropdown-menu">
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-types.html')">建筑万象</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-ethnic.html')">民族交融</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-tech.html')">匠心传承</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-protection.html')">守护重生</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-insights.html')">回望·尾声</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('hall-gallery.html')">建筑图鉴</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">展厅五</div>
+                <h1 class="section-title">匠 心 传 承</h1>
+                <p class="section-subtitle">建筑技术 · 云南智慧结晶</p>
+            </div>
+
+            <div class="tech-category-section">
+                <div class="section-header" style="padding: 20px 0;">
+                    <div class="section-badge">技术体系</div>
+                    <h2 class="section-title" style="font-size: 24px;">四大技术类别</h2>
+                </div>
+                <div class="tech-category-grid" id="techCategoryGrid"></div>
+            </div>
+
+            <div class="tech-detail-section" id="techDetailSection"></div>
+
+            <div class="charts-section">
+                <div class="chart-card" style="grid-column: span 2;">
+                    <div class="chart-title">技术-民族关联矩阵</div>
+                    <div id="techEthnicMatrix" style="height: 400px;"></div>
+                </div>
+            </div>
+            
+            <div class="section-header" style="padding: 40px 0 20px;">
+                <div class="section-badge">结构体系</div>
+                <h2 class="section-title" style="font-size: 24px;">建筑结构类型层级分布</h2>
+            </div>
+            <div class="chart-card" style="margin-bottom: 50px;">
+                <div id="structureChart" style="height: 500px;"></div>
+            </div>
+
+            <div class="tech-comparison-section">
+                <div class="section-header" style="padding: 20px 0;">
+                    <div class="section-badge">技术对比</div>
+                    <h2 class="section-title" style="font-size: 24px;">各民族核心技术特色</h2>
+                </div>
+                <table class="tech-comparison-table" id="techComparisonTable">
+                    <thead>
+                        <tr><th>民族</th><th>结构技术</th><th>装饰艺术</th><th>空间布局</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- 展厅导航 -->
+            <div class="hall-nav">
+                <a href="javascript:void(0)" class="hall-nav-btn" onclick="navigateTo('hall-ethnic.html')">
+                    <span class="hall-nav-arrow">←</span>
+                    <span>上一展厅：民族交融</span>
+                </a>
+                <a href="javascript:void(0)" class="hall-nav-btn primary" onclick="navigateTo('hall-protection.html')">
+                    <span>进入下一展厅：守护重生</span>
+                    <span class="hall-nav-arrow">→</span>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/data.js"></script>
+    <script>
+        // iframe内导航函数 - 通过postMessage保持音乐播放
+        function navigateTo(url) {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'navigate', url: url }, '*');
+            } else {
+                window.location.href = url;
+            }
+        }
+
+        const buildings = BUILDINGS || [];
+
+        // 技术类别数据 - 基于实际建筑数据
+        const techCategories = {
+            'structure': {
+                name: '结构技术',
+                desc: '云南古建筑的结构技术融合了中原传统与本土智慧',
+                ethnicTechs: {
+                    '汉族': { features: [{ title: '穿斗抬梁混合', desc: '官式抬梁与地方穿斗式结合' }, { title: '金包玉砌筑', desc: '外墙青砖、内填土坯' }], buildings: ['云南贡院', '建水朱家花园'] },
+                    '白族': { features: [{ title: '三坊一照壁', desc: '三面房屋围合，照壁正对主房' }, { title: '四合五天井', desc: '四房围合形成五个天井' }], buildings: ['喜洲白族古建築群', '诺邓白族乡土建筑群'] },
+                    '彝族': { features: [{ title: '土掌房技术', desc: '平顶土坯房，层层叠叠' }, { title: '一颗印布局', desc: '方形平面，四房围合' }], buildings: ['城子村民居', '高氏士司衙署'] },
+                    '傣族': { features: [{ title: '干栏式竹楼', desc: '高脚木楼，防潮防虫' }, { title: '汉傣融合', desc: '孟连宣抚司署干栏式结构融入汉族官署形制' }], buildings: ['整董傣族传统民居建筑群', '孟连宣抚司署'] },
+                    '纳西族': { features: [{ title: '悬山顶民居', desc: '屋顶出檐深远，保护墙体' }, { title: '三坊一照壁', desc: '纳西族适应高原坝区的合院布局' }], buildings: ['方国瑜故居', '宝山石头城'] },
+                    '藏族': { features: [{ title: '碉楼技术', desc: '石砌高碉，防御与居住一体' }, { title: '汉藏融合', desc: '中心镇公堂藏式碉楼融合汉式官署' }], buildings: ['中心镇公堂'] },
+                    '傈僳族': { features: [{ title: '井干式木屋', desc: '圆木叠砌，榫卯连接' }, { title: '千脚落地', desc: '多柱支撑，适应陡坡地形' }], buildings: ['同乐傈僳族传统民居建筑群'] },
+                    '佤族': { features: [{ title: '干栏式竹楼', desc: '竹木结构，底层架空' }, { title: '茅草房技术', desc: '茅草盖顶，竹编墙体' }], buildings: ['翁丁佤族传统民居建筑群'] },
+                    '怒族': { features: [{ title: '千脚落地式干栏', desc: '多柱支撑的高脚楼' }, { title: '木楞房技术', desc: '圆木井干式垒砌墙体' }], buildings: ['翁里怒族传统民居建筑群', '秋那桶怒族传统民居建筑群'] },
+                    '阿昌族': { features: [{ title: '汉傣融合建筑', desc: '南甸宣抚司署融合多民族风格' }, { title: '土司衙署技术', desc: '穿斗式与抬梁式结合' }], buildings: ['南甸宣抚司署'] },
+                    '苗族': { features: [{ title: '风雨桥技术', desc: '保兴桥融合壮族、苗族风雨桥技艺' }, { title: '石拱廊桥', desc: '三孔石拱廊桥，穿斗式木结构廊屋' }], buildings: ['保兴桥'] },
+                    '哈尼族': { features: [{ title: '风雨桥建筑', desc: '泗涧桥阁融合汉族风雨桥与哈尼族文化' }, { title: '梯田生态建筑', desc: '与梯田农业生态系统深度结合' }], buildings: ['泗涧桥阁'] },
+                    '独龙族': { features: [{ title: '井干式木屋', desc: '圆木叠砌，适应峡谷气候' }, { title: '千脚落地', desc: '多柱支撑干栏式建筑' }], buildings: ['迪麻洛民族混合传统民居建筑群'] },
+                    '回族': { features: [{ title: '砖木混合', desc: '青砖砌墙，木构架屋顶' }, { title: '外汉内回', desc: '马家大院汉族形制融入伊斯兰文化' }], buildings: ['马家大院', '东莲花村民居'] },
+                    '壮族': { features: [{ title: '干栏式木楼', desc: '全楼居式，木结构为主' }, { title: '风雨桥技术', desc: '拖派风雨桥穿斗式木构架廊桥' }], buildings: ['拖派风雨桥', '保兴桥'] }
+                }
+            },
+            'decoration': {
+                name: '装饰艺术',
+                desc: '云南古建筑的装饰艺术丰富多彩，体现了各民族的审美追求',
+                ethnicTechs: {
+                    '汉族': { features: [{ title: '木雕装饰', desc: '门窗、梁枋精雕细琢' }, { title: '彩绘壁画', desc: '传统彩绘工艺' }], buildings: ['建水朱家花园', '云南贡院'] },
+                    '白族': { features: [{ title: '彩绘照壁', desc: '照壁彩绘精美，工艺精湛' }, { title: '木雕门楼', desc: '门楼木雕繁复华丽' }], buildings: ['喜洲白族古建築群', '诺邓白族乡土建筑群'] },
+                    '傣族': { features: [{ title: '金水漏印', desc: '佛寺金水图案，漏印技法' }, { title: '孔雀装饰', desc: '孔雀造型装饰，傣族文化象征' }], buildings: ['整董傣族传统民居建筑群'] },
+                    '纳西族': { features: [{ title: '东巴装饰', desc: '东巴文字与图案融入建筑装饰' }, { title: '悬鱼惹草', desc: '博风板装饰' }], buildings: ['方国瑜故居'] },
+                    '彝族': { features: [{ title: '石雕装饰', desc: '门墩、柱础石雕' }, { title: '图腾装饰', desc: '虎、鹰等图腾元素' }], buildings: ['城子村民居', '高氏士司衙署'] },
+                    '藏族': { features: [{ title: '藏式彩绘', desc: '寺院彩绘，色彩浓烈' }, { title: '经文装饰', desc: '经文、吉祥图案装饰门窗' }], buildings: ['中心镇公堂'] },
+                    '傈僳族': { features: [{ title: '竹编艺术', desc: '竹编图案装饰室内外' }, { title: '图腾柱', desc: '木雕图腾柱' }], buildings: ['同乐傈僳族传统民居建筑群'] },
+                    '佤族': { features: [{ title: '牛头装饰', desc: '牛头造型象征财富与地位' }, { title: '木鼓装饰', desc: '木鼓图案融入建筑装饰' }], buildings: ['翁丁佤族传统民居建筑群'] },
+                    '怒族': { features: [{ title: '竹编藤编', desc: '竹藤编织图案装饰' }, { title: '图腾装饰', desc: '自然图腾元素' }], buildings: ['翁里怒族传统民居建筑群'] },
+                    '回族': { features: [{ title: '伊斯兰纹样', desc: '阿拉伯几何纹样装饰' }, { title: '外汉内回', desc: '装饰融入伊斯兰文化禁忌与审美' }], buildings: ['马家大院', '东莲花村民居'] },
+                    '壮族': { features: [{ title: '壮锦图案', desc: '壮锦纹样装饰室内' }, { title: '铜鼓装饰', desc: '铜鼓图案象征权力' }], buildings: ['拖派风雨桥'] },
+                    '阿昌族': { features: [{ title: '汉傣阿昌融合', desc: '南甸宣抚司署装饰融合多民族风格' }, { title: '土司衙署装饰', desc: '雕梁画栋，精美木雕' }], buildings: ['南甸宣抚司署'] },
+                    '苗族': { features: [{ title: '风雨桥装饰', desc: '保兴桥融合苗族装饰技艺' }, { title: '多民族装饰', desc: '壮族廊桥文化基底，苗族装饰细节' }], buildings: ['保兴桥'] },
+                    '哈尼族': { features: [{ title: '风雨桥装饰', desc: '泗涧桥阁融合哈尼族装饰元素' }, { title: '梯田文化装饰', desc: '与梯田农业文化相关的装饰' }], buildings: ['泗涧桥阁'] },
+                    '独龙族': { features: [{ title: '木雕装饰', desc: '简单的木雕图案' }, { title: '自然图腾', desc: '自然崇拜相关的装饰元素' }], buildings: ['迪麻洛民族混合传统民居建筑群'] }
+                }
+            },
+            'material': {
+                name: '材料技术',
+                desc: '云南古建筑善用本地材料，形成了适应地域的材料技术体系',
+                ethnicTechs: {
+                    '汉族': { features: [{ title: '青砖砌筑', desc: '本地烧制青砖，耐久性好' }, { title: '空斗墙技术', desc: '砖砌空斗墙，隔热性能好' }], buildings: ['建水文庙', '朱家花园'] },
+                    '白族': { features: [{ title: '大理石运用', desc: '本地大理石用于台基、栏杆' }, { title: '青瓦灰砖', desc: '白族民居统一色调' }], buildings: ['喜洲古建筑群'] },
+                    '彝族': { features: [{ title: '土坯砌筑', desc: '本地红土制坯，保温性好' }, { title: '毛石砌筑', desc: '山地石材用于墙体基础' }], buildings: ['城子村民居'] },
+                    '傣族': { features: [{ title: '竹材运用', desc: '优质竹材用于楼板、墙体' }, { title: '茅草屋顶', desc: '茅草盖顶，隔热防雨' }], buildings: ['整董傣族传统民居建筑群'] },
+                    '纳西族': { features: [{ title: '木材运用', desc: '优质松木用于梁柱、门窗' }, { title: '青瓦屋顶', desc: '青瓦覆盖，耐久美观' }], buildings: ['方国瑜故居'] },
+                    '藏族': { features: [{ title: '石材砌筑', desc: '花岗岩、片麻岩砌墙' }, { title: '夯土技术', desc: '夯土墙体，保温隔热' }], buildings: ['中心镇公堂'] },
+                    '傈僳族': { features: [{ title: '圆木叠砌', desc: '松木圆木横向叠砌' }, { title: '竹编墙体', desc: '竹编夹泥墙' }], buildings: ['同乐傈僳族传统民居建筑群'] },
+                    '佤族': { features: [{ title: '竹木结构', desc: '竹木混合搭建' }, { title: '茅草覆盖', desc: '茅草屋顶，轻便实用' }], buildings: ['翁丁佤族传统民居建筑群'] },
+                    '怒族': { features: [{ title: '木板材', desc: '木板墙、木地板' }, { title: '竹编材料', desc: '竹编墙体、隔断' }], buildings: ['翁里怒族传统民居建筑群'] },
+                    '回族': { features: [{ title: '青砖材料', desc: '青砖砌筑墙体' }, { title: '木构架', desc: '木构架支撑屋顶' }], buildings: ['马家大院'] },
+                    '壮族': { features: [{ title: '杉木结构', desc: '杉木柱梁，榫卯连接' }, { title: '树皮屋顶', desc: '杉树皮盖顶' }], buildings: ['拖派风雨桥'] },
+                    '阿昌族': { features: [{ title: '砖木材料', desc: '青砖与木材结合' }, { title: '土司衙署材料', desc: '土木结构，青瓦屋顶' }], buildings: ['南甸宣抚司署'] },
+                    '苗族': { features: [{ title: '石木材料', desc: '保兴桥采用石材与木材结合' }, { title: '风雨桥材料', desc: '石拱桥身与木构廊屋' }], buildings: ['保兴桥'] },
+                    '哈尼族': { features: [{ title: '木石材料', desc: '泗涧桥阁采用木材与石材' }, { title: '风雨桥材料', desc: '传统风雨桥建筑材料' }], buildings: ['泗涧桥阁'] },
+                    '独龙族': { features: [{ title: '原木材料', desc: '圆木井干式叠砌' }, { title: '木板石板', desc: '木板墙体、石板屋顶' }], buildings: ['迪麻洛民族混合传统民居建筑群'] }
+                }
+            },
+            'climate': {
+                name: '气候适应',
+                desc: '云南地形气候复杂多样，古建筑形成了适应不同环境的建造智慧',
+                ethnicTechs: {
+                    '汉族': { features: [{ title: '天井通风', desc: '合院天井组织自然通风' }, { title: '高墙防晒', desc: '高墙小窗，减少太阳辐射' }], buildings: ['建水民居', '昆明民居'] },
+                    '白族': { features: [{ title: '照壁挡风', desc: '照壁可阻挡冷风' }, { title: '挑檐遮阳', desc: '深远挑檐遮挡夏季阳光' }], buildings: ['喜洲白族民居'] },
+                    '傣族': { features: [{ title: '干栏防潮', desc: '底层架空，防潮防虫' }, { title: '陡坡屋顶', desc: '陡坡便于排水，适应多雨' }], buildings: ['傣族竹楼'] },
+                    '藏族': { features: [{ title: '厚墙保温', desc: '石砌厚墙，冬季保暖' }, { title: '小窗防风', desc: '小窗减少热量散失' }], buildings: ['藏式民居'] },
+                    '纳西族': { features: [{ title: '悬山防雨', desc: '悬山屋顶便于排水' }, { title: '骑楼避雨', desc: '沿街骑楼，雨天行走方便' }], buildings: ['丽江古城'] },
+                    '彝族': { features: [{ title: '平顶晒粮', desc: '土掌房平顶可晒粮食' }, { title: '厚墙保温', desc: '土坯厚墙，冬暖夏凉' }], buildings: ['城子村民居'] },
+                    '傈僳族': { features: [{ title: '井干式保暖', desc: '圆木墙体保暖性好' }, { title: '多柱稳固', desc: '多柱支撑，抗震防风' }], buildings: ['同乐傈僳族传统民居建筑群'] },
+                    '佤族': { features: [{ title: '架空防潮', desc: '底层架空，防潮防虫' }, { title: '茅草隔热', desc: '茅草屋顶隔热' }], buildings: ['翁丁佤族传统民居建筑群'] },
+                    '怒族': { features: [{ title: '干栏适应', desc: '高脚楼适应山地潮湿' }, { title: '陡坡排水', desc: '陡坡屋顶快速排水' }], buildings: ['翁里怒族传统民居建筑群'] },
+                    '回族': { features: [{ title: '合院通风', desc: '合院布局利于通风' }, { title: '拱券稳固', desc: '拱券结构抗震' }], buildings: ['马家大院'] },
+                    '壮族': { features: [{ title: '干栏防潮', desc: '底层架空防潮' }, { title: '挑檐遮阳', desc: '深远挑檐遮阳' }], buildings: ['拖派风雨桥'] },
+                    '阿昌族': { features: [{ title: '架空通风', desc: '底层架空通风防潮' }, { title: '合院采光', desc: '合院布局采光好' }], buildings: ['南甸宣抚司署'] },
+                    '苗族': { features: [{ title: '风雨桥遮蔽', desc: '保兴桥廊屋遮风挡雨' }, { title: '多民族适应', desc: '适应滇东南多雨气候' }], buildings: ['保兴桥'] },
+                    '哈尼族': { features: [{ title: '风雨桥适应', desc: '泗涧桥阁适应多雨气候' }, { title: '梯田生态', desc: '与梯田生态系统协调' }], buildings: ['泗涧桥阁'] },
+                    '独龙族': { features: [{ title: '井干保暖', desc: '圆木墙体保暖' }, { title: '峡谷适应', desc: '适应怒江峡谷气候' }], buildings: ['迪麻洛民族混合传统民居建筑群'] }
+                }
+            }
+        };
+
+        let currentCategory = 'structure';
+        let currentEthnic = null;
+        let previousEthnicIndex = 0;
+
+        function renderTechCategories() {
+            const grid = document.getElementById('techCategoryGrid');
+            grid.innerHTML = Object.entries(techCategories).map(([key, cat]) => 
+                '<div class="tech-category-card ' + (key === currentCategory ? 'active' : '') + '" data-category="' + key + '">' +
+                '<div class="tech-category-icon"></div>' +
+                '<div class="tech-category-name">' + cat.name + '</div>' +
+                '<div class="tech-category-count">' + Object.keys(cat.ethnicTechs).length + ' 个民族特色</div></div>'
+            ).join('');
+            grid.querySelectorAll('.tech-category-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    currentCategory = this.dataset.category;
+                    grid.querySelectorAll('.tech-category-card').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    renderTechDetail();
+                });
+            });
+        }
+
+        function renderTechDetail() {
+            const section = document.getElementById('techDetailSection');
+            const cat = techCategories[currentCategory];
+            const ethnics = Object.keys(cat.ethnicTechs);
+            if (!currentEthnic || !ethnics.includes(currentEthnic)) { currentEthnic = ethnics[0]; previousEthnicIndex = 0; }
+            section.innerHTML = 
+                '<div class="tech-detail-header"><div class="tech-detail-title">' + cat.name + '</div>' +
+                '<div class="tech-detail-desc">' + cat.desc + '</div></div>' +
+                '<div class="ethnic-selector">' + ethnics.map((ethnic, index) => 
+                    '<div class="ethnic-selector-item ' + (ethnic === currentEthnic ? 'active' : '') + '" data-ethnic="' + ethnic + '" data-index="' + index + '">' +
+                    '<div class="ethnic-selector-icon">' + getEthnicIcon(ethnic) + '</div>' +
+                    '<div class="ethnic-selector-name">' + ethnic + '</div></div>'
+                ).join('') + '</div>' +
+                '<div class="ethnic-tech-card-container">' + ethnics.map((ethnic, index) => 
+                    '<div class="ethnic-tech-card ' + (ethnic === currentEthnic ? 'active' : '') + '" data-ethnic="' + ethnic + '" data-index="' + index + '">' +
+                    '<div class="ethnic-tech-header"><div class="ethnic-tech-icon">' + getEthnicIcon(ethnic) + '</div>' +
+                    '<div class="ethnic-tech-name">' + ethnic + '建筑技术</div></div>' +
+                    '<div class="ethnic-tech-body"><div class="ethnic-tech-features">' + 
+                    cat.ethnicTechs[ethnic].features.map(f => 
+                        '<div class="ethnic-tech-feature"><div class="ethnic-tech-feature-title">' + f.title + '</div>' +
+                        '<div class="ethnic-tech-feature-desc">' + f.desc + '</div></div>'
+                    ).join('') + '</div>' +
+                    '<div class="ethnic-tech-buildings"><div class="ethnic-tech-buildings-title">代表建筑</div>' +
+                    cat.ethnicTechs[ethnic].buildings.map(b => '<span class="ethnic-tech-building-tag">' + b + '</span>').join('') + '</div></div></div>'
+                ).join('') + '</div>';
+            section.querySelectorAll('.ethnic-selector-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const newEthnic = this.dataset.ethnic;
+                    const newIndex = parseInt(this.dataset.index);
+                    if (newEthnic === currentEthnic) return;
+                    section.querySelectorAll('.ethnic-selector-item').forEach(s => s.classList.remove('active'));
+                    this.classList.add('active');
+                    switchEthnicCard(currentEthnic, newEthnic, previousEthnicIndex, newIndex);
+                    currentEthnic = newEthnic;
+                    previousEthnicIndex = newIndex;
+                });
+            });
+        }
+
+        function switchEthnicCard(oldEthnic, newEthnic, oldIndex, newIndex) {
+            const container = document.querySelector('.ethnic-tech-card-container');
+            const oldCard = container.querySelector('.ethnic-tech-card[data-ethnic="' + oldEthnic + '"]');
+            const newCard = container.querySelector('.ethnic-tech-card[data-ethnic="' + newEthnic + '"]');
+            if (!oldCard || !newCard) return;
+            const direction = newIndex > oldIndex ? 'left' : 'right';
+            oldCard.classList.remove('active');
+            oldCard.classList.add(direction === 'left' ? 'exit-left' : 'exit-right');
+            newCard.classList.remove('exit-left', 'exit-right');
+            newCard.classList.add('active');
+            setTimeout(() => { oldCard.classList.remove('exit-left', 'exit-right'); }, 500);
+        }
+
+        function getEthnicIcon(ethnic) {
+            const iconPaths = {
+                '汉族': 'assets/images/ethnic/汉族.png', '白族': 'assets/images/ethnic/白族.png',
+                '彝族': 'assets/images/ethnic/彝族.png', '傣族': 'assets/images/ethnic/傣族.png',
+                '纳西族': 'assets/images/ethnic/纳西族.png', '藏族': 'assets/images/ethnic/藏族.png',
+                '回族': 'assets/images/ethnic/回族.png', '壮族': 'assets/images/ethnic/壮族.png',
+                '哈尼族': 'assets/images/ethnic/哈尼族.png', '傈僳族': 'assets/images/ethnic/傈僳族.png',
+                '苗族': 'assets/images/ethnic/苗族.png', '佤族': 'assets/images/ethnic/佤族.png',
+                '怒族': 'assets/images/ethnic/怒族.png', '阿昌族': 'assets/images/ethnic/阿昌族.png',
+                '独龙族': 'assets/images/ethnic/独龙族.png'
+            };
+            const path = iconPaths[ethnic] || 'assets/images/ethnic/汉族.png';
+            return '<img src="' + path + '" alt="' + ethnic + '" onerror="this.style.display=\'none\'">';
+        }
+
+        function initMatrixChart() {
+            const chart = echarts.init(document.getElementById('techEthnicMatrix'));
+            const techTypes = ['结构技术', '装饰艺术', '材料技术', '气候适应'];
+            const ethnicSet = new Set();
+            Object.values(techCategories).forEach(cat => { Object.keys(cat.ethnicTechs).forEach(ethnic => ethnicSet.add(ethnic)); });
+            const ethnics = Array.from(ethnicSet);
+            
+            // 计算每个民族在每个技术类别的实际数量
+            const matrixData = {};
+            ethnics.forEach(ethnic => { matrixData[ethnic] = {}; techTypes.forEach(tech => { matrixData[ethnic][tech] = 0; }); });
+            
+            Object.entries(techCategories).forEach(([key, cat]) => {
+                const techName = cat.name;
+                Object.entries(cat.ethnicTechs).forEach(([ethnic, data]) => {
+                    if (matrixData[ethnic]) { 
+                        // 数量 = 特色数量 + 建筑数量
+                        matrixData[ethnic][techName] = data.features.length + data.buildings.length; 
+                    }
+                });
+            });
+            
+            // 找出最大值用于归一化
+            let maxCount = 0;
+            ethnics.forEach(ethnic => { 
+                techTypes.forEach(tech => { 
+                    if (matrixData[ethnic][tech] > maxCount) maxCount = matrixData[ethnic][tech]; 
+                }); 
+            });
+            
+            // 构建热力图数据 - 使用实际数量作为值
+            const data = [];
+            ethnics.forEach((ethnic, i) => { 
+                techTypes.forEach((tech, j) => { 
+                    const count = matrixData[ethnic][tech]; 
+                    data.push([j, i, count]); 
+                }); 
+            });
+            
+            chart.setOption({
+                backgroundColor: 'transparent',
+                tooltip: { 
+                    formatter: function(params) { 
+                        const d = params.data; 
+                        const ethnic = ethnics[d[1]]; 
+                        const tech = techTypes[d[0]]; 
+                        return '<strong style="color:#c8a45c">' + ethnic + '</strong> - ' + tech + '<br/>特色数量: ' + d[2]; 
+                    } 
+                },
+                grid: { top: 70, right: 20, bottom: 60, left: 80 },
+                xAxis: { 
+                    type: 'category', 
+                    data: techTypes, 
+                    axisLine: { lineStyle: { color: 'rgba(200, 164, 92, 0.3)' } }, 
+                    axisLabel: { color: '#9a958a', fontSize: 11 }, 
+                    splitLine: { show: true, lineStyle: { color: 'rgba(200, 164, 92, 0.1)' } } 
+                },
+                yAxis: { 
+                    type: 'category', 
+                    data: ethnics, 
+                    axisLine: { lineStyle: { color: 'rgba(200, 164, 92, 0.3)' } }, 
+                    axisLabel: { color: '#9a958a', fontSize: 11 }, 
+                    splitLine: { show: true, lineStyle: { color: 'rgba(200, 164, 92, 0.1)' } } 
+                },
+                visualMap: { 
+                    min: 0, 
+                    max: maxCount, 
+                    calculable: true, 
+                    orient: 'horizontal', 
+                    left: 'center', 
+                    bottom: 5, 
+                    inRange: { 
+                        color: ['#2a2520', '#4a4030', '#7a6040', '#b89050', '#e8c060', '#ffe080'] 
+                    }, 
+                    textStyle: { color: '#9a958a' }, 
+                    text: ['丰富', '较少'] 
+                },
+                series: [{ 
+                    type: 'heatmap', 
+                    data: data, 
+                    label: { 
+                        show: false
+                    }, 
+                    itemStyle: { 
+                        borderColor: 'rgba(10, 9, 8, 0.5)', 
+                        borderWidth: 1 
+                    }, 
+                    emphasis: { 
+                        itemStyle: { 
+                            shadowBlur: 10,
+                            borderColor: '#c8a45c',
+                            borderWidth: 2
+                        } 
+                    } 
+                }]
+            });
+            return chart;
+        }
+
+        function initStructureChart() {
+            const chart = echarts.init(document.getElementById('structureChart'));
+            const structureData = {
+                '木结构': { color: '#c8a45c', subTypes: { '穿斗式': { buildings: ['黑井武家大院', '依氏土司衙署', '拖派风雨桥', '陈氏民居', '南甸宣抚司署'] }, '抬梁式': { buildings: ['云南贡院', '黑井武家大院'] }, '井干式': { buildings: ['同乐傈僳族民居', '雾里村民居', '秋那桶村民居', '迪麻洛村民居'] } } },
+                '干栏式': { color: '#5d7a6e', subTypes: { '竹木干栏': { buildings: ['整董傣族民居', '翁丁佤族民居', '翁里怒族民居'] }, '木干栏': { buildings: ['孟连宣抚司署', '雾里村民居', '秋那桶村民居'] } } },
+                '石结构': { color: '#a43330', subTypes: { '石拱桥': { buildings: ['星宿桥', '灵官桥', '牛羊太平桥', '双龙桥', '天缘桥', '保兴桥'] } } },
+                '土木结构': { color: '#6b8e8e', subTypes: { '夯土墙': { buildings: ['地索李家宅院', '老营李将军府', '城子村民居'] }, '土坯房': { buildings: ['城子村民居', '高氏土司衙署'] } } },
+                '砖木结构': { color: '#8b7355', subTypes: { '青砖木构': { buildings: ['云南贡院', '马家大院', '东莲花村民居'] } } }
+            };
+            const nodes = [];
+            const links = [];
+            let nodeIndex = 0;
+            const mainTypeIndices = {};
+            const subTypeIndices = {};
+            const buildingIndices = {};
+            nodes.push({ name: '云南古建筑结构', itemStyle: { color: '#c8a45c' }, x: 300, y: 25 });
+            const mainY = 100;
+            const subY = 250;
+            const buildingY = 400;
+            Object.entries(structureData).forEach(([mainType, mainData], mainIndex) => {
+                const mainNodeIndex = nodeIndex + 1;
+                mainTypeIndices[mainType] = mainNodeIndex;
+                nodes.push({ name: mainType, itemStyle: { color: mainData.color }, x: 150 + mainIndex * 150, y: mainY });
+                links.push({ source: 0, target: mainNodeIndex, value: 10, lineStyle: { color: mainData.color, opacity: 0.6 } });
+                nodeIndex++;
+                Object.entries(mainData.subTypes).forEach(([subType, subData], subIndex) => {
+                    const subNodeIndex = nodeIndex + 1;
+                    const subKey = mainType + '_' + subType;
+                    subTypeIndices[subKey] = subNodeIndex;
+                    nodes.push({ name: subType, itemStyle: { color: mainData.color, opacity: 0.8 }, x: 50 + subIndex * 120 + mainIndex * 200, y: subY });
+                    links.push({ source: mainTypeIndices[mainType], target: subNodeIndex, value: 5, lineStyle: { color: mainData.color, opacity: 0.4 } });
+                    nodeIndex++;
+                    subData.buildings.slice(0, 3).forEach((building, bIndex) => {
+                        if (!buildingIndices[building]) {
+                            const bNodeIndex = nodeIndex + 1;
+                            buildingIndices[building] = bNodeIndex;
+                            nodes.push({ name: building, itemStyle: { color: '#9a958a' }, x: 30 + bIndex * 80 + subIndex * 120 + mainIndex * 200, y: buildingY, label: { fontSize: 10 } });
+                            links.push({ source: subTypeIndices[subKey], target: bNodeIndex, value: 1, lineStyle: { color: mainData.color, opacity: 0.3 } });
+                            nodeIndex++;
+                        }
+                    });
+                });
+            });
+            chart.setOption({
+                backgroundColor: 'transparent',
+                tooltip: { trigger: 'item', formatter: '{b}' },
+                series: [{ type: 'sankey', layout: 'none', nodeWidth: 20, nodeGap: 12, layoutIterations: 0, focusNodeAdjacency: 'allEdges', lineStyle: { color: 'gradient', curveness: 0.5 }, label: { color: '#9a958a', fontSize: 11 }, data: nodes, links: links }]
+            });
+            return chart;
+        }
+
+        function renderComparisonTable() {
+            const tbody = document.querySelector('#techComparisonTable tbody');
+            const comparisonData = [
+                { ethnic: '汉族', structure: '穿斗抬梁混合、金包玉砌筑', decoration: '木雕、彩绘壁画', layout: '合院式、一颗印' },
+                { ethnic: '白族', structure: '三坊一照壁、四合五天井', decoration: '彩绘照壁、木雕门楼', layout: '合院式、照壁布局' },
+                { ethnic: '彝族', structure: '土掌房、一颗印', decoration: '石雕、图腾装饰', layout: '层叠式、合院式' },
+                { ethnic: '傣族', structure: '干栏式竹楼、汉傣融合', decoration: '金水漏印、孔雀装饰', layout: '干栏式、聚落式' },
+                { ethnic: '纳西族', structure: '悬山顶民居、三坊一照壁', decoration: '东巴装饰、悬鱼惹草', layout: '合院式、骑楼式' },
+                { ethnic: '藏族', structure: '碉楼技术、汉藏融合', decoration: '藏式彩绘、经文装饰', layout: '碉楼式、合院式' },
+                { ethnic: '傈僳族', structure: '井干式木屋、千脚落地', decoration: '竹编艺术、图腾柱', layout: '山地聚落、阶梯式' },
+                { ethnic: '佤族', structure: '干栏式竹楼、茅草房', decoration: '牛头装饰、木鼓装饰', layout: '向心式聚落' },
+                { ethnic: '怒族', structure: '千脚落地式干栏、木楞房', decoration: '竹编藤编、图腾装饰', layout: '山地干栏、聚落式' },
+                { ethnic: '阿昌族', structure: '汉傣融合建筑、土司衙署', decoration: '多民族融合装饰、木雕', layout: '合院式、土司衙署布局' },
+                { ethnic: '苗族', structure: '风雨桥技术、石拱廊桥', decoration: '风雨桥装饰、多民族融合', layout: '廊桥式、多民族聚落' },
+                { ethnic: '哈尼族', structure: '风雨桥建筑、梯田生态', decoration: '风雨桥装饰、梯田文化', layout: '廊桥式、梯田聚落' },
+                { ethnic: '独龙族', structure: '井干式木屋、千脚落地', decoration: '木雕装饰、自然图腾', layout: '山地聚落、井干式' },
+                { ethnic: '回族', structure: '砖木混合、外汉内回', decoration: '伊斯兰纹样、外汉内回', layout: '合院式、店宅合一' },
+                { ethnic: '壮族', structure: '干栏式木楼、风雨桥技术', decoration: '壮锦图案、铜鼓装饰', layout: '干栏式、廊桥式' }
+            ];
+            tbody.innerHTML = comparisonData.map(row => 
+                '<tr><td style="color:#c8a45c;font-weight:500">' + row.ethnic + '</td>' +
+                '<td>' + row.structure.split('、').map(t => '<span class="tech-tag">' + t + '</span>').join('') + '</td>' +
+                '<td>' + row.decoration.split('、').map(t => '<span class="tech-tag">' + t + '</span>').join('') + '</td>' +
+                '<td>' + row.layout.split('、').map(t => '<span class="tech-tag">' + t + '</span>').join('') + '</td></tr>'
+            ).join('');
+        }
+
+        let matrixChart = null;
+        let structureChart = null;
+
+        function init() {
+            renderTechCategories();
+            renderTechDetail();
+            matrixChart = initMatrixChart();
+            structureChart = initStructureChart();
+            renderComparisonTable();
+        }
+
+        window.addEventListener('resize', function() {
+            if (matrixChart) matrixChart.resize();
+            if (structureChart) structureChart.resize();
+        });
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
